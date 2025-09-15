@@ -33,7 +33,7 @@
         9
       ],
       "vlan": 300,
-      "name": "P3_to_T1_triple"
+      "name": "PFE_to_T1_triple"
     }
   ],
   "uc_file": "sja1110_uc_rj45_to_automotive.bin",

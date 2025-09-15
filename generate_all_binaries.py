@@ -57,7 +57,7 @@ def generate_switch_binary(streams):
 
     # General Parameters - FRMREPEN (Frame Replication Enable)
     config.extend(struct.pack('<I', 1))  # Enable FRER
-    config.extend(struct.pack('<BB', 0, 10))  # Host port 0, Cascade port 10
+    config.extend(struct.pack('<BB', 4, 10))  # Host port 4 (PFE_MAC0), Cascade port 10
 
     # Pad to CB Sequence Generation Table (0x080000)
     while len(config) < 0x080000:
@@ -119,9 +119,11 @@ def generate_switch_binary(streams):
 def main():
     """Generate all FRER binaries"""
 
-    # Port mapping
+    # Port mapping (CORRECTED - P3A/P3B/P5 are NOT on SJA1110!)
     port_map = {
-        'PFE': 0, 'P1': 1, 'P2A': 2, 'P2B': 3, 'P3': 4,
+        'PFE': 4,  # PFE_MAC0 is on Port 4 (SGMII)
+        'P1': 1, 'P2A': 2, 'P2B': 3,
+        # P3A, P3B, P5 are directly connected to S32G, not SJA1110!
         'P6': 5, 'P7': 6, 'P8': 7, 'P9': 8, 'P10': 9, 'P11': 10
     }
 
@@ -131,7 +133,7 @@ def main():
             'description': 'Basic RJ45 frame replication',
             'streams': [
                 {'id': 1, 'src_port': 1, 'dst_ports': [2, 3], 'vlan': 100, 'name': 'P1_to_P2AB'},
-                {'id': 2, 'src_port': 2, 'dst_ports': [1, 4], 'vlan': 200, 'name': 'P2A_to_P1P3'},
+                {'id': 2, 'src_port': 2, 'dst_ports': [1, 4], 'vlan': 200, 'name': 'P2A_to_P1_PFE'},
             ]
         },
         'rj45_to_automotive': {
@@ -139,15 +141,15 @@ def main():
             'streams': [
                 {'id': 1, 'src_port': 2, 'dst_ports': [5, 6, 7, 8], 'vlan': 100, 'name': 'P2A_to_T1'},
                 {'id': 2, 'src_port': 1, 'dst_ports': [5, 6], 'vlan': 200, 'name': 'P1_to_T1_pair'},
-                {'id': 3, 'src_port': 4, 'dst_ports': [7, 8, 9], 'vlan': 300, 'name': 'P3_to_T1_triple'},
+                {'id': 3, 'src_port': 4, 'dst_ports': [7, 8, 9], 'vlan': 300, 'name': 'PFE_to_T1_triple'},
             ]
         },
         'redundant_gateway': {
             'description': 'Redundant gateway with backup paths',
             'streams': [
                 {'id': 1, 'src_port': 2, 'dst_ports': [0, 5], 'vlan': 100, 'name': 'External_to_PFE'},
-                {'id': 2, 'src_port': 0, 'dst_ports': [2, 3], 'vlan': 200, 'name': 'PFE_to_External'},
-                {'id': 3, 'src_port': 1, 'dst_ports': [2, 3, 4, 0], 'vlan': 10, 'priority': 7, 'name': 'Control_Critical'},
+                {'id': 2, 'src_port': 4, 'dst_ports': [2, 3], 'vlan': 200, 'name': 'PFE_to_External'},
+                {'id': 3, 'src_port': 1, 'dst_ports': [2, 3, 4], 'vlan': 10, 'priority': 7, 'name': 'Control_Critical'},
             ]
         },
         'ring_topology': {
@@ -169,14 +171,14 @@ def main():
             'description': 'Mixed automotive ECU network',
             'streams': [
                 {'id': 1, 'src_port': 1, 'dst_ports': [5, 6, 7], 'vlan': 100, 'name': 'Diagnostic_to_ECU'},
-                {'id': 2, 'src_port': 5, 'dst_ports': [0, 2], 'vlan': 200, 'name': 'Sensor_Aggregation'},
-                {'id': 3, 'src_port': 0, 'dst_ports': [1, 2, 3, 4, 5, 6, 7, 8], 'vlan': 10, 'priority': 7, 'name': 'Safety_Broadcast'},
+                {'id': 2, 'src_port': 5, 'dst_ports': [4, 2], 'vlan': 200, 'name': 'Sensor_Aggregation'},
+                {'id': 3, 'src_port': 4, 'dst_ports': [1, 2, 3, 5, 6, 7, 8, 9], 'vlan': 10, 'priority': 7, 'name': 'Safety_Broadcast'},
             ]
         },
         'test_scenario': {
             'description': 'Comprehensive test configuration',
             'streams': [
-                {'id': 1, 'src_port': 0, 'dst_ports': [2, 3], 'vlan': 100, 'name': 'PFE_to_P2AB'},
+                {'id': 1, 'src_port': 4, 'dst_ports': [2, 3], 'vlan': 100, 'name': 'PFE_to_P2AB'},
                 {'id': 2, 'src_port': 2, 'dst_ports': [5, 6], 'vlan': 200, 'name': 'P2A_to_PFE'},
                 {'id': 3, 'src_port': 5, 'dst_ports': [6, 7], 'vlan': 300, 'name': 'T1_Ring'},
                 {'id': 4, 'src_port': 1, 'dst_ports': [2, 3, 5], 'vlan': 10, 'priority': 7, 'name': 'Critical_Triple'},
@@ -185,21 +187,21 @@ def main():
         'maximum_replication': {
             'description': 'Maximum replication test (all ports)',
             'streams': [
-                {'id': 1, 'src_port': 0, 'dst_ports': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 'vlan': 100, 'priority': 7, 'name': 'PFE_to_ALL'},
-                {'id': 2, 'src_port': 2, 'dst_ports': [0, 1, 3, 4, 5, 6, 7, 8, 9, 10], 'vlan': 200, 'priority': 7, 'name': 'P2A_to_ALL'},
+                {'id': 1, 'src_port': 4, 'dst_ports': [1, 2, 3, 5, 6, 7, 8, 9, 10], 'vlan': 100, 'priority': 7, 'name': 'PFE_to_ALL'},
+                {'id': 2, 'src_port': 2, 'dst_ports': [1, 3, 4, 5, 6, 7, 8, 9, 10], 'vlan': 200, 'priority': 7, 'name': 'P2A_to_ALL'},
             ]
         },
         'dual_path': {
             'description': 'Simple dual path redundancy',
             'streams': [
-                {'id': 1, 'src_port': 0, 'dst_ports': [2, 3], 'vlan': 100, 'name': 'Primary_Dual'},
+                {'id': 1, 'src_port': 4, 'dst_ports': [2, 3], 'vlan': 100, 'name': 'PFE_Dual'},
                 {'id': 2, 'src_port': 1, 'dst_ports': [5, 6], 'vlan': 200, 'name': 'Secondary_Dual'},
             ]
         },
         'triple_redundancy': {
             'description': 'Triple redundancy for critical systems',
             'streams': [
-                {'id': 1, 'src_port': 0, 'dst_ports': [2, 3, 4], 'vlan': 10, 'priority': 7, 'name': 'Critical_Triple_1'},
+                {'id': 1, 'src_port': 4, 'dst_ports': [2, 3, 1], 'vlan': 10, 'priority': 7, 'name': 'PFE_Critical_Triple'},
                 {'id': 2, 'src_port': 1, 'dst_ports': [5, 6, 7], 'vlan': 20, 'priority': 7, 'name': 'Critical_Triple_2'},
                 {'id': 3, 'src_port': 2, 'dst_ports': [8, 9, 10], 'vlan': 30, 'priority': 7, 'name': 'Critical_Triple_3'},
             ]

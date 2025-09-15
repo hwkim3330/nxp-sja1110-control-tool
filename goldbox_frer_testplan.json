@@ -3,14 +3,14 @@
   "switch": "SJA1110",
   "general_params": {
     "frmrepen": true,
-    "host_port": 0,
+    "host_port": 4,
     "casc_port": 10
   },
   "frer_streams": [
     {
       "stream_id": 1,
       "name": "PFE_to_P2AB",
-      "src_port": 0,
+      "src_port": 4,
       "dst_ports": [
         2,
         3
@@ -82,7 +82,7 @@
   "cb_individual_recovery": [
     {
       "stream_handle": 1,
-      "ingress_port": 0,
+      "ingress_port": 4,
       "seq_num": 0,
       "history_len": 32,
       "reset_timeout": 100,
@@ -120,7 +120,7 @@
       "priority": 6,
       "cb_en": 1,
       "rtag_type": 61889,
-      "ingress_port": 0
+      "ingress_port": 4
     },
     "2": {
       "stream_id": 2,

@@ -36,18 +36,21 @@ L2_FWD_TABLE_OFFSET = 0x050000
 MAC_CONFIG_TABLE_OFFSET = 0x060000
 
 class GoldBoxPort(IntEnum):
-    """Gold Box Port Mapping"""
-    PFE = 0    # S32G PFE_MAC0 (Port 0)
+    """Gold Box Port Mapping (Corrected)
+    Note: P3A, P3B, P5 are NOT connected to SJA1110!
+    """
+    # Port 0 is reserved/internal
     P1 = 1     # P1/P4 connector (100BASE-TX)
-    P2A = 2    # P2A connector (1000BASE-T)
-    P2B = 3    # P2B connector (1000BASE-T)
-    P3 = 4     # P3 connector (1000BASE-T)
+    P2A = 2    # P2A connector (1000BASE-T via AR8035)
+    P2B = 3    # P2B connector (1000BASE-T via AR8035)
+    PFE = 4    # PFE_MAC0 (S32G internal SGMII) - Host port
     P6 = 5     # P6 connector (100BASE-T1)
     P7 = 6     # P7 connector (100BASE-T1)
     P8 = 7     # P8 connector (100BASE-T1)
     P9 = 8     # P9 connector (100BASE-T1)
     P10 = 9    # P10 connector (100BASE-T1)
     P11 = 10   # P11 connector (100BASE-T1)
+    # P3A, P3B, P5 are directly connected to S32G, not SJA1110!
 
 @dataclass
 class FRERStream:
@@ -69,7 +72,7 @@ class FRERController:
         self.streams: List[FRERStream] = []
         self.general_params = {
             "frmrepen": True,  # Frame Replication Enable
-            "host_port": 0,    # PFE is host port
+            "host_port": 4,    # PFE_MAC0 is host port (Port 4)
             "casc_port": 10,   # Cascade port
         }
         self.cb_seq_gen_entries = []
@@ -90,9 +93,11 @@ class FRERController:
 
     def add_stream(self, stream_id, src_port, dst_ports, vlan_id=100, priority=7, name=""):
         """Add a FRER stream for frame replication"""
-        # Map port names to numbers
+        # Map port names to numbers (corrected)
+        # Note: P3A, P3B, P5 are NOT available (direct S32G connection)
         port_map = {
-            'PFE': 0, 'P1': 1, 'P2A': 2, 'P2B': 3, 'P3': 4,
+            'PFE': 4,  # PFE_MAC0 on Port 4 (SGMII)
+            'P1': 1, 'P2A': 2, 'P2B': 3,
             'P6': 5, 'P7': 6, 'P8': 7, 'P9': 8, 'P10': 9, 'P11': 10
         }
 
@@ -151,22 +156,22 @@ class FRERController:
         scenarios = {
             'basic_rj45': [
                 {'id': 1, 'src': 'P1', 'dst': ['P2A', 'P2B'], 'vlan': 100, 'name': 'P1_to_P2AB'},
-                {'id': 2, 'src': 'P2A', 'dst': ['P1', 'P3'], 'vlan': 200, 'name': 'P2A_to_P1P3'},
+                {'id': 2, 'src': 'P2A', 'dst': ['P1', 'PFE'], 'vlan': 200, 'name': 'P2A_to_P1_PFE'},
             ],
             'rj45_to_automotive': [
                 {'id': 1, 'src': 'P2A', 'dst': ['P6', 'P7', 'P8', 'P9'], 'vlan': 100, 'name': 'P2A_to_T1'},
                 {'id': 2, 'src': 'P1', 'dst': ['P6', 'P7'], 'vlan': 200, 'name': 'P1_to_T1_pair'},
-                {'id': 3, 'src': 'P3', 'dst': ['P8', 'P9', 'P10'], 'vlan': 300, 'name': 'P3_to_T1_triple'},
+                {'id': 3, 'src': 'PFE', 'dst': ['P8', 'P9', 'P10'], 'vlan': 300, 'name': 'PFE_to_T1_triple'},
             ],
             'redundant_gateway': [
                 {'id': 1, 'src': 'P2A', 'dst': ['PFE', 'P6'], 'vlan': 100, 'name': 'External_to_PFE'},
                 {'id': 2, 'src': 'PFE', 'dst': ['P2A', 'P2B'], 'vlan': 200, 'name': 'PFE_to_External'},
-                {'id': 3, 'src': 'P1', 'dst': ['P2A', 'P2B', 'P3', 'PFE'], 'vlan': 10, 'name': 'Control_Critical'},
+                {'id': 3, 'src': 'P1', 'dst': ['P2A', 'P2B', 'PFE'], 'vlan': 10, 'priority': 7, 'name': 'Control_Critical'},
             ],
             'ring_topology': [
                 {'id': 1, 'src': 'P2A', 'dst': ['P2B', 'P6'], 'vlan': 100, 'name': 'Ring_In'},
                 {'id': 2, 'src': 'P6', 'dst': ['P7', 'P8'], 'vlan': 200, 'name': 'T1_Ring'},
-                {'id': 3, 'src': 'P8', 'dst': ['P1', 'P3'], 'vlan': 300, 'name': 'Backup_Path'},
+                {'id': 3, 'src': 'P8', 'dst': ['P1', 'PFE'], 'vlan': 300, 'name': 'Backup_Path'},
             ],
             'test_scenario': [
                 {'id': 1, 'src': 'PFE', 'dst': ['P2A', 'P2B'], 'vlan': 100, 'name': 'PFE_to_P2AB'},

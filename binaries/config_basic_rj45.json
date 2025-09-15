@@ -20,7 +20,7 @@
         4
       ],
       "vlan": 200,
-      "name": "P2A_to_P1P3"
+      "name": "P2A_to_P1_PFE"
     }
   ],
   "uc_file": "sja1110_uc_basic_rj45.bin",

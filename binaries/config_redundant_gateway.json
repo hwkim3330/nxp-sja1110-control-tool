@@ -14,7 +14,7 @@
     },
     {
       "id": 2,
-      "src_port": 0,
+      "src_port": 4,
       "dst_ports": [
         2,
         3
@@ -28,8 +28,7 @@
       "dst_ports": [
         2,
         3,
-        4,
-        0
+        4
       ],
       "vlan": 10,
       "priority": 7,

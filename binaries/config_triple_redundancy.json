@@ -4,15 +4,15 @@
   "streams": [
     {
       "id": 1,
-      "src_port": 0,
+      "src_port": 4,
       "dst_ports": [
         2,
         3,
-        4
+        1
       ],
       "vlan": 10,
       "priority": 7,
-      "name": "Critical_Triple_1"
+      "name": "PFE_Critical_Triple"
     },
     {
       "id": 2,
