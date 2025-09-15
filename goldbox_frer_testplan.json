@@ -1,60 +1,150 @@
 {
-  "timestamp": "2025-09-13T06:42:07.454311",
-  "device": "S32G-VNP-GLDBOX",
-  "switch": "SJA1110A",
-  "scenarios": [
+  "device": "NXP S32G-VNP-GLDBOX",
+  "switch": "SJA1110",
+  "general_params": {
+    "frmrepen": true,
+    "host_port": 0,
+    "casc_port": 10
+  },
+  "frer_streams": [
     {
+      "stream_id": 1,
       "name": "PFE_to_P2AB",
-      "description": "Traffic from PFE replicated to P2A and P2B for redundancy",
-      "input_port": "Port 4 (PFE_MAC0 (SGMII))",
-      "replicate_to": [
-        "Port 2 (P2A (1000BASE-T))",
-        "Port 3 (P2B (1000BASE-T))"
+      "src_port": 0,
+      "dst_ports": [
+        2,
+        3
       ],
-      "eliminate_at": "External device",
       "vlan_id": 100,
-      "priority": 7,
-      "expected_behavior": "Frames from PFE_MAC0 duplicated to both P2A and P2B"
+      "priority": 6
     },
     {
+      "stream_id": 2,
       "name": "P2A_to_PFE",
-      "description": "External traffic from P2A replicated through T1 ports, eliminated at PFE",
-      "input_port": "Port 2 (P2A (1000BASE-T))",
-      "replicate_to": [
-        "Port 5 (P6 (100BASE-T1))",
-        "Port 6 (P7 (100BASE-T1))"
+      "src_port": 2,
+      "dst_ports": [
+        5,
+        6
       ],
-      "eliminate_at": "Port 4 (PFE_MAC0 (SGMII))",
+      "vlan_id": 200,
+      "priority": 6
+    },
+    {
+      "stream_id": 3,
+      "name": "T1_Ring",
+      "src_port": 5,
+      "dst_ports": [
+        6,
+        7
+      ],
+      "vlan_id": 300,
+      "priority": 6
+    },
+    {
+      "stream_id": 4,
+      "name": "Critical_Triple",
+      "src_port": 1,
+      "dst_ports": [
+        2,
+        3,
+        5
+      ],
+      "vlan_id": 10,
+      "priority": 7
+    }
+  ],
+  "cb_sequence_generation": [
+    {
+      "stream_handle": 1,
+      "port_mask": 12,
+      "seq_num": 0,
+      "enabled": true
+    },
+    {
+      "stream_handle": 2,
+      "port_mask": 96,
+      "seq_num": 0,
+      "enabled": true
+    },
+    {
+      "stream_handle": 3,
+      "port_mask": 192,
+      "seq_num": 0,
+      "enabled": true
+    },
+    {
+      "stream_handle": 4,
+      "port_mask": 44,
+      "seq_num": 0,
+      "enabled": true
+    }
+  ],
+  "cb_individual_recovery": [
+    {
+      "stream_handle": 1,
+      "ingress_port": 0,
+      "seq_num": 0,
+      "history_len": 32,
+      "reset_timeout": 100,
+      "enabled": true
+    },
+    {
+      "stream_handle": 2,
+      "ingress_port": 2,
+      "seq_num": 0,
+      "history_len": 32,
+      "reset_timeout": 100,
+      "enabled": true
+    },
+    {
+      "stream_handle": 3,
+      "ingress_port": 5,
+      "seq_num": 0,
+      "history_len": 32,
+      "reset_timeout": 100,
+      "enabled": true
+    },
+    {
+      "stream_handle": 4,
+      "ingress_port": 1,
+      "seq_num": 0,
+      "history_len": 32,
+      "reset_timeout": 100,
+      "enabled": true
+    }
+  ],
+  "dpi_config": {
+    "1": {
+      "stream_id": 1,
+      "vlan_id": 100,
+      "priority": 6,
+      "cb_en": 1,
+      "rtag_type": 61889,
+      "ingress_port": 0
+    },
+    "2": {
+      "stream_id": 2,
       "vlan_id": 200,
       "priority": 6,
-      "expected_behavior": "Frames from P2A sent through P6/P7, duplicates removed at PFE"
+      "cb_en": 1,
+      "rtag_type": 61889,
+      "ingress_port": 2
     },
-    {
-      "name": "T1_Ring",
-      "description": "100BASE-T1 ring redundancy for automotive applications",
-      "input_port": "Port 5 (P6 (100BASE-T1))",
-      "replicate_to": [
-        "Port 6 (P7 (100BASE-T1))",
-        "Port 7 (P8 (100BASE-T1))"
-      ],
-      "eliminate_at": "Port 9 (P10 (100BASE-T1))",
+    "3": {
+      "stream_id": 3,
       "vlan_id": 300,
-      "priority": 5,
-      "expected_behavior": "T1 traffic replicated through ring, eliminated at P10"
+      "priority": 6,
+      "cb_en": 1,
+      "rtag_type": 61889,
+      "ingress_port": 5
     },
-    {
-      "name": "Critical_Control",
-      "description": "Triple redundancy for safety-critical control messages",
-      "input_port": "Port 1 (P1 (100BASE-TX))",
-      "replicate_to": [
-        "Port 2 (P2A (1000BASE-T))",
-        "Port 3 (P2B (1000BASE-T))",
-        "Port 5 (P6 (100BASE-T1))"
-      ],
-      "eliminate_at": "Port 4 (PFE_MAC0 (SGMII))",
+    "4": {
+      "stream_id": 4,
       "vlan_id": 10,
       "priority": 7,
-      "expected_behavior": "Critical messages triplicated, PFE receives single copy"
+      "cb_en": 1,
+      "rtag_type": 61889,
+      "ingress_port": 1
     }
-  ]
+  }
 }

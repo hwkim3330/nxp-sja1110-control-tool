@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 FRER (Frame Replication and Elimination for Reliability) Tool
-for NXP SJA1110 TSN Switch
+for NXP SJA1110 TSN Switch - Gold Box Implementation
 
 This tool provides functionality for configuring and managing FRER
-on the SJA1110 switch platform.
+on the NXP S32G-VNP-GLDBOX platform with SJA1110 switch.
 """
 
 import sys
@@ -13,170 +13,377 @@ import argparse
 import struct
 import binascii
 import time
+import zlib
+import logging
 from pathlib import Path
+from typing import List, Dict, Any, Optional
+from dataclasses import dataclass
+from enum import IntEnum
+
+# SJA1110 Hardware Constants
+IMAGE_VALID_MARKER = b'\x6A\xA6\x6A\xA6\x6A\xA6\x6A\xA6'
+DEVICE_ID_SJA1110 = 0xb700030e
+RTAG_ETHERTYPE = 0xF1C1
+
+# Configuration Table Offsets (from UM11107)
+DEVICE_ID_OFFSET = 0x000000
+GENERAL_PARAMS_OFFSET = 0x034000
+CB_SEQ_GEN_TABLE_OFFSET = 0x080000
+CB_IND_REC_TABLE_OFFSET = 0x090000
+DPI_TABLE_OFFSET = 0x0A0000
+VLAN_LOOKUP_TABLE_OFFSET = 0x040000
+L2_FWD_TABLE_OFFSET = 0x050000
+MAC_CONFIG_TABLE_OFFSET = 0x060000
+
+class GoldBoxPort(IntEnum):
+    """Gold Box Port Mapping"""
+    PFE = 0    # S32G PFE_MAC0 (Port 0)
+    P1 = 1     # P1/P4 connector (100BASE-TX)
+    P2A = 2    # P2A connector (1000BASE-T)
+    P2B = 3    # P2B connector (1000BASE-T)
+    P3 = 4     # P3 connector (1000BASE-T)
+    P6 = 5     # P6 connector (100BASE-T1)
+    P7 = 6     # P7 connector (100BASE-T1)
+    P8 = 7     # P8 connector (100BASE-T1)
+    P9 = 8     # P9 connector (100BASE-T1)
+    P10 = 9    # P10 connector (100BASE-T1)
+    P11 = 10   # P11 connector (100BASE-T1)
+
+@dataclass
+class FRERStream:
+    """FRER Stream Configuration"""
+    stream_id: int
+    src_port: int
+    dst_ports: List[int]
+    vlan_id: int
+    priority: int = 7
+    name: str = ""
+    sequence_history: int = 32
+    cb_enable: bool = True
 
 class FRERController:
-    """Controller for FRER functionality on SJA1110"""
+    """Controller for FRER functionality on Gold Box SJA1110"""
 
     def __init__(self):
-        self.config = {
-            "version": "1.0.0",
-            "device": "SJA1110",
-            "frer_enabled": False,
-            "sequence_recovery": {
-                "algorithm": "match_recovery",
-                "history_length": 256,
-                "reset_timeout": 100
-            },
-            "stream_identification": [],
-            "sequence_generation": [],
-            "sequence_recovery_entries": []
+        self.logger = logging.getLogger(__name__)
+        self.streams: List[FRERStream] = []
+        self.general_params = {
+            "frmrepen": True,  # Frame Replication Enable
+            "host_port": 0,    # PFE is host port
+            "casc_port": 10,   # Cascade port
         }
+        self.cb_seq_gen_entries = []
+        self.cb_ind_rec_entries = []
+        self.dpi_entries = {}
 
     def enable_frer(self):
         """Enable FRER functionality"""
-        self.config["frer_enabled"] = True
+        self.general_params["frmrepen"] = True
         print("✓ FRER enabled")
         return True
 
     def disable_frer(self):
         """Disable FRER functionality"""
-        self.config["frer_enabled"] = False
+        self.general_params["frmrepen"] = False
         print("✓ FRER disabled")
         return True
 
-    def add_stream(self, stream_id, src_mac, dst_mac, vlan_id=None):
-        """Add a stream for FRER processing"""
-        stream = {
-            "stream_id": stream_id,
-            "source_mac": src_mac,
-            "destination_mac": dst_mac,
-            "vlan_id": vlan_id,
-            "active": True
+    def add_stream(self, stream_id, src_port, dst_ports, vlan_id=100, priority=7, name=""):
+        """Add a FRER stream for frame replication"""
+        # Map port names to numbers
+        port_map = {
+            'PFE': 0, 'P1': 1, 'P2A': 2, 'P2B': 3, 'P3': 4,
+            'P6': 5, 'P7': 6, 'P8': 7, 'P9': 8, 'P10': 9, 'P11': 10
         }
-        self.config["stream_identification"].append(stream)
-        print(f"✓ Added stream {stream_id}")
+
+        # Convert port names to numbers if needed
+        if isinstance(src_port, str):
+            src_port = port_map.get(src_port.upper(), src_port)
+        if isinstance(dst_ports, str):
+            dst_ports = [dst_ports]
+        dst_ports = [port_map.get(p.upper(), p) if isinstance(p, str) else p for p in dst_ports]
+
+        stream = FRERStream(
+            stream_id=stream_id,
+            src_port=int(src_port),
+            dst_ports=[int(p) for p in dst_ports],
+            vlan_id=vlan_id,
+            priority=priority,
+            name=name or f"Stream_{stream_id}"
+        )
+        self.streams.append(stream)
+
+        # Create CB Sequence Generation entry for replication
+        if len(dst_ports) > 1:
+            port_mask = sum(1 << p for p in stream.dst_ports)
+            self.cb_seq_gen_entries.append({
+                'stream_handle': stream_id,
+                'port_mask': port_mask,
+                'seq_num': 0,
+                'enabled': True
+            })
+
+        # Create CB Individual Recovery entry
+        self.cb_ind_rec_entries.append({
+            'stream_handle': stream_id,
+            'ingress_port': src_port,
+            'seq_num': 0,
+            'history_len': stream.sequence_history,
+            'reset_timeout': 100,
+            'enabled': True
+        })
+
+        # Configure DPI for stream identification
+        self.dpi_entries[stream_id] = {
+            'stream_id': stream_id,
+            'vlan_id': vlan_id,
+            'priority': priority,
+            'cb_en': 1,
+            'rtag_type': RTAG_ETHERTYPE,
+            'ingress_port': src_port
+        }
+
+        print(f"✓ Added stream {stream_id}: Port {src_port} → Ports {dst_ports}")
         return True
 
-    def configure_replication(self, stream_id, ports, seq_num_start=0):
-        """Configure frame replication for a stream"""
-        replication = {
-            "stream_id": stream_id,
-            "replication_ports": ports,
-            "sequence_number": seq_num_start,
-            "active": True
+    def add_goldbox_scenario(self, scenario_name):
+        """Add pre-configured Gold Box FRER scenarios"""
+        scenarios = {
+            'basic_rj45': [
+                {'id': 1, 'src': 'P1', 'dst': ['P2A', 'P2B'], 'vlan': 100, 'name': 'P1_to_P2AB'},
+                {'id': 2, 'src': 'P2A', 'dst': ['P1', 'P3'], 'vlan': 200, 'name': 'P2A_to_P1P3'},
+            ],
+            'rj45_to_automotive': [
+                {'id': 1, 'src': 'P2A', 'dst': ['P6', 'P7', 'P8', 'P9'], 'vlan': 100, 'name': 'P2A_to_T1'},
+                {'id': 2, 'src': 'P1', 'dst': ['P6', 'P7'], 'vlan': 200, 'name': 'P1_to_T1_pair'},
+                {'id': 3, 'src': 'P3', 'dst': ['P8', 'P9', 'P10'], 'vlan': 300, 'name': 'P3_to_T1_triple'},
+            ],
+            'redundant_gateway': [
+                {'id': 1, 'src': 'P2A', 'dst': ['PFE', 'P6'], 'vlan': 100, 'name': 'External_to_PFE'},
+                {'id': 2, 'src': 'PFE', 'dst': ['P2A', 'P2B'], 'vlan': 200, 'name': 'PFE_to_External'},
+                {'id': 3, 'src': 'P1', 'dst': ['P2A', 'P2B', 'P3', 'PFE'], 'vlan': 10, 'name': 'Control_Critical'},
+            ],
+            'ring_topology': [
+                {'id': 1, 'src': 'P2A', 'dst': ['P2B', 'P6'], 'vlan': 100, 'name': 'Ring_In'},
+                {'id': 2, 'src': 'P6', 'dst': ['P7', 'P8'], 'vlan': 200, 'name': 'T1_Ring'},
+                {'id': 3, 'src': 'P8', 'dst': ['P1', 'P3'], 'vlan': 300, 'name': 'Backup_Path'},
+            ],
+            'test_scenario': [
+                {'id': 1, 'src': 'PFE', 'dst': ['P2A', 'P2B'], 'vlan': 100, 'name': 'PFE_to_P2AB'},
+                {'id': 2, 'src': 'P2A', 'dst': ['P6', 'P7'], 'vlan': 200, 'name': 'P2A_to_PFE'},
+                {'id': 3, 'src': 'P6', 'dst': ['P7', 'P8'], 'vlan': 300, 'name': 'T1_Ring'},
+                {'id': 4, 'src': 'P1', 'dst': ['P2A', 'P2B', 'P6'], 'vlan': 10, 'name': 'Critical_Triple'},
+            ]
         }
-        self.config["sequence_generation"].append(replication)
-        print(f"✓ Configured replication for stream {stream_id} on ports {ports}")
-        return True
 
-    def configure_elimination(self, stream_id, ports, window_size=10):
-        """Configure frame elimination for a stream"""
-        elimination = {
-            "stream_id": stream_id,
-            "elimination_ports": ports,
-            "window_size": window_size,
-            "duplicate_count": 0,
-            "out_of_order_count": 0,
-            "active": True
-        }
-        self.config["sequence_recovery_entries"].append(elimination)
-        print(f"✓ Configured elimination for stream {stream_id} on ports {ports}")
+        if scenario_name not in scenarios:
+            print(f"Available scenarios: {', '.join(scenarios.keys())}")
+            return False
+
+        for stream in scenarios[scenario_name]:
+            self.add_stream(
+                stream_id=stream['id'],
+                src_port=stream['src'],
+                dst_ports=stream['dst'],
+                vlan_id=stream['vlan'],
+                priority=7 if 'Critical' in stream.get('name', '') else 6,
+                name=stream['name']
+            )
+
+        print(f"✓ Loaded scenario: {scenario_name}")
         return True
 
     def show_status(self):
         """Display current FRER status"""
-        print("\n=== FRER Status ===")
-        print(f"FRER Enabled: {self.config['frer_enabled']}")
-        print(f"Version: {self.config['version']}")
-        print(f"Device: {self.config['device']}")
+        print("\n=== Gold Box FRER Status ===")
+        print(f"FRER Enabled: {self.general_params['frmrepen']}")
+        print(f"Device: NXP S32G-VNP-GLDBOX (SJA1110)")
+        print(f"Host Port: {self.general_params['host_port']} (PFE)")
 
-        print(f"\nConfigured Streams: {len(self.config['stream_identification'])}")
-        for stream in self.config["stream_identification"]:
-            print(f"  - Stream {stream['stream_id']}: {stream['source_mac']} -> {stream['destination_mac']}")
+        print(f"\nConfigured Streams: {len(self.streams)}")
+        for stream in self.streams:
+            port_names = ['PFE', 'P1', 'P2A', 'P2B', 'P3', 'P6', 'P7', 'P8', 'P9', 'P10', 'P11']
+            src_name = port_names[stream.src_port] if stream.src_port < len(port_names) else f"Port{stream.src_port}"
+            dst_names = [port_names[p] if p < len(port_names) else f"Port{p}" for p in stream.dst_ports]
+            print(f"  - {stream.name}: {src_name} → {', '.join(dst_names)} (VLAN {stream.vlan_id})")
 
-        print(f"\nReplication Entries: {len(self.config['sequence_generation'])}")
-        for rep in self.config["sequence_generation"]:
-            print(f"  - Stream {rep['stream_id']}: Ports {rep['replication_ports']}")
+        print(f"\nReplication Points: {len(self.cb_seq_gen_entries)}")
+        for entry in self.cb_seq_gen_entries:
+            ports = [i for i in range(11) if entry['port_mask'] & (1 << i)]
+            print(f"  - Stream {entry['stream_handle']}: Replicate to ports {ports}")
 
-        print(f"\nElimination Entries: {len(self.config['sequence_recovery_entries'])}")
-        for elim in self.config["sequence_recovery_entries"]:
-            print(f"  - Stream {elim['stream_id']}: Ports {elim['elimination_ports']}, Window {elim['window_size']}")
+        print(f"\nElimination Points: {len(self.cb_ind_rec_entries)}")
+        for entry in self.cb_ind_rec_entries:
+            print(f"  - Stream {entry['stream_handle']}: Port {entry['ingress_port']}, History {entry['history_len']}")
 
         return True
 
     def save_config(self, filename):
-        """Save configuration to file"""
+        """Save configuration to JSON file"""
+        config = {
+            'device': 'NXP S32G-VNP-GLDBOX',
+            'switch': 'SJA1110',
+            'general_params': self.general_params,
+            'frer_streams': [],
+            'cb_sequence_generation': self.cb_seq_gen_entries,
+            'cb_individual_recovery': self.cb_ind_rec_entries,
+            'dpi_config': self.dpi_entries
+        }
+
+        for stream in self.streams:
+            config['frer_streams'].append({
+                'stream_id': stream.stream_id,
+                'name': stream.name,
+                'src_port': stream.src_port,
+                'dst_ports': stream.dst_ports,
+                'vlan_id': stream.vlan_id,
+                'priority': stream.priority
+            })
+
         with open(filename, 'w') as f:
-            json.dump(self.config, f, indent=2)
+            json.dump(config, f, indent=2)
         print(f"✓ Configuration saved to {filename}")
         return True
 
     def load_config(self, filename):
-        """Load configuration from file"""
+        """Load configuration from JSON file"""
         with open(filename, 'r') as f:
-            self.config = json.load(f)
+            config = json.load(f)
+
+        self.general_params = config.get('general_params', self.general_params)
+        self.streams = []
+
+        for stream_cfg in config.get('frer_streams', []):
+            stream = FRERStream(
+                stream_id=stream_cfg['stream_id'],
+                src_port=stream_cfg['src_port'],
+                dst_ports=stream_cfg['dst_ports'],
+                vlan_id=stream_cfg['vlan_id'],
+                priority=stream_cfg.get('priority', 7),
+                name=stream_cfg.get('name', '')
+            )
+            self.streams.append(stream)
+
+        self.cb_seq_gen_entries = config.get('cb_sequence_generation', [])
+        self.cb_ind_rec_entries = config.get('cb_individual_recovery', [])
+        self.dpi_entries = config.get('dpi_config', {})
+
         print(f"✓ Configuration loaded from {filename}")
         return True
 
     def generate_binary(self, output_file):
-        """Generate binary configuration for hardware upload"""
-        # Create binary header
-        header = struct.pack('<4sHHI', b'FRER', 0x0100, len(self.config["stream_identification"]),
-                           int(self.config["frer_enabled"]))
+        """Generate SJA1110 switch.bin configuration for Gold Box"""
+        config = bytearray()
 
-        # Add stream configurations
-        stream_data = b''
-        for stream in self.config["stream_identification"]:
-            stream_id = struct.pack('<H', stream["stream_id"])
-            src_mac = binascii.unhexlify(stream["source_mac"].replace(':', ''))
-            dst_mac = binascii.unhexlify(stream["destination_mac"].replace(':', ''))
-            vlan = struct.pack('<H', stream["vlan_id"] if stream["vlan_id"] else 0)
-            stream_data += stream_id + src_mac + dst_mac + vlan
+        # Header with valid marker
+        config.extend(IMAGE_VALID_MARKER)
 
-        # Add replication configurations
-        rep_data = b''
-        for rep in self.config["sequence_generation"]:
-            rep_entry = struct.pack('<HHI', rep["stream_id"],
-                                  sum(1 << p for p in rep["replication_ports"]),
-                                  rep["sequence_number"])
-            rep_data += rep_entry
+        # Device ID
+        config.extend(struct.pack('<I', DEVICE_ID_SJA1110))
 
-        # Add elimination configurations
-        elim_data = b''
-        for elim in self.config["sequence_recovery_entries"]:
-            elim_entry = struct.pack('<HHH', elim["stream_id"],
-                                   sum(1 << p for p in elim["elimination_ports"]),
-                                   elim["window_size"])
-            elim_data += elim_entry
+        # Configuration flags
+        config_flags = (1 << 31) | (1 << 30) | (1 << 29) | (1 << 28)
+        config.extend(struct.pack('<I', config_flags))
 
-        # Combine all data
-        binary_data = header + stream_data + rep_data + elim_data
+        # Pad to General Parameters offset
+        while len(config) < GENERAL_PARAMS_OFFSET:
+            config.extend(b'\x00')
 
-        # Pad to 4KB minimum
-        while len(binary_data) < 4096:
-            binary_data += b'\x00'
+        # General Parameters
+        # FRMREPEN (Frame Replication Enable) at offset 0x034000
+        config.extend(struct.pack('<I', 1 if self.general_params['frmrepen'] else 0))
 
+        # Host port and cascade port
+        config.extend(struct.pack('<BB',
+                                 self.general_params['host_port'],
+                                 self.general_params['casc_port']))
+
+        # Pad to CB Sequence Generation Table
+        while len(config) < CB_SEQ_GEN_TABLE_OFFSET:
+            config.extend(b'\x00')
+
+        # CB Sequence Generation Table (for frame replication)
+        for entry in self.cb_seq_gen_entries:
+            flags = 0x80 if entry['enabled'] else 0x00
+            cb_entry = struct.pack('<HHBH',
+                                  entry['stream_handle'],
+                                  entry['port_mask'],
+                                  flags,
+                                  entry['seq_num'])
+            config.extend(cb_entry)
+
+        # Pad to CB Individual Recovery Table
+        while len(config) < CB_IND_REC_TABLE_OFFSET:
+            config.extend(b'\x00')
+
+        # CB Individual Recovery Table (for duplicate elimination)
+        for entry in self.cb_ind_rec_entries:
+            flags = 0x80 if entry['enabled'] else 0x00
+            rec_entry = struct.pack('<HBBHHH',
+                                   entry['stream_handle'],
+                                   entry['ingress_port'],
+                                   flags,
+                                   entry['seq_num'],
+                                   entry['history_len'],
+                                   entry['reset_timeout'])
+            config.extend(rec_entry)
+
+        # Pad to DPI Table
+        while len(config) < DPI_TABLE_OFFSET:
+            config.extend(b'\x00')
+
+        # DPI Configuration (Deep Packet Inspection for stream identification)
+        for stream_id, dpi_cfg in self.dpi_entries.items():
+            dpi_entry = struct.pack('<HHHBBBB',
+                                   stream_id,
+                                   dpi_cfg['vlan_id'],
+                                   dpi_cfg['rtag_type'],
+                                   dpi_cfg['cb_en'],
+                                   1,  # sn_num_greater
+                                   dpi_cfg['priority'],
+                                   dpi_cfg['ingress_port'])
+            config.extend(dpi_entry)
+
+        # Pad to minimum size (655360 bytes for Gold Box)
+        MIN_SIZE = 655360
+        while len(config) < MIN_SIZE:
+            config.extend(b'\x00')
+
+        # Calculate and add CRC32
+        crc = zlib.crc32(bytes(config)) & 0xFFFFFFFF
+        config.extend(struct.pack('<I', crc))
+
+        # Write to file
         with open(output_file, 'wb') as f:
-            f.write(binary_data)
+            f.write(bytes(config))
 
-        print(f"✓ Binary configuration generated: {output_file} ({len(binary_data)} bytes)")
+        print(f"✓ Binary configuration generated: {output_file} ({len(config)} bytes)")
         return True
 
 def main():
-    parser = argparse.ArgumentParser(description='FRER Control Tool for SJA1110')
+    # Setup logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)s: %(message)s'
+    )
+
+    parser = argparse.ArgumentParser(description='Gold Box FRER Control Tool for SJA1110')
     parser.add_argument('command', choices=['enable', 'disable', 'status', 'add-stream',
-                                           'configure-replication', 'configure-elimination',
-                                           'save', 'load', 'generate-binary', 'test'],
+                                           'scenario', 'save', 'load', 'generate-binary',
+                                           'test', 'upload'],
                        help='Command to execute')
     parser.add_argument('--stream-id', type=int, help='Stream ID')
-    parser.add_argument('--src-mac', help='Source MAC address')
-    parser.add_argument('--dst-mac', help='Destination MAC address')
-    parser.add_argument('--vlan-id', type=int, help='VLAN ID')
-    parser.add_argument('--ports', nargs='+', type=int, help='Port numbers')
-    parser.add_argument('--window-size', type=int, default=10, help='Elimination window size')
+    parser.add_argument('--src-port', help='Source port (e.g., PFE, P1, P2A)')
+    parser.add_argument('--dst-ports', nargs='+', help='Destination ports')
+    parser.add_argument('--vlan-id', type=int, default=100, help='VLAN ID')
+    parser.add_argument('--priority', type=int, default=7, help='Priority (0-7)')
+    parser.add_argument('--name', help='Stream name')
+    parser.add_argument('--scenario', choices=['basic_rj45', 'rj45_to_automotive',
+                                              'redundant_gateway', 'ring_topology',
+                                              'test_scenario'],
+                       help='Pre-configured scenario')
     parser.add_argument('--file', help='Configuration file')
-    parser.add_argument('--output', help='Output file')
+    parser.add_argument('--output', default='goldbox_frer.bin', help='Output binary file')
 
     args = parser.parse_args()
 
@@ -193,22 +400,25 @@ def main():
             controller.show_status()
 
         elif args.command == 'add-stream':
-            if not all([args.stream_id, args.src_mac, args.dst_mac]):
-                print("Error: --stream-id, --src-mac, and --dst-mac are required")
+            if not all([args.stream_id, args.src_port, args.dst_ports]):
+                print("Error: --stream-id, --src-port, and --dst-ports are required")
                 return 1
-            controller.add_stream(args.stream_id, args.src_mac, args.dst_mac, args.vlan_id)
+            controller.add_stream(
+                args.stream_id,
+                args.src_port,
+                args.dst_ports,
+                args.vlan_id,
+                args.priority,
+                args.name or f"Stream_{args.stream_id}"
+            )
 
-        elif args.command == 'configure-replication':
-            if not all([args.stream_id, args.ports]):
-                print("Error: --stream-id and --ports are required")
+        elif args.command == 'scenario':
+            if not args.scenario:
+                print("Error: --scenario is required")
+                print("Available: basic_rj45, rj45_to_automotive, redundant_gateway, ring_topology, test_scenario")
                 return 1
-            controller.configure_replication(args.stream_id, args.ports)
-
-        elif args.command == 'configure-elimination':
-            if not all([args.stream_id, args.ports]):
-                print("Error: --stream-id and --ports are required")
-                return 1
-            controller.configure_elimination(args.stream_id, args.ports, args.window_size)
+            controller.add_goldbox_scenario(args.scenario)
+            controller.show_status()
 
         elif args.command == 'save':
             if not args.file:
@@ -223,32 +433,77 @@ def main():
             controller.load_config(args.file)
 
         elif args.command == 'generate-binary':
-            if not args.output:
-                print("Error: --output is required")
-                return 1
             controller.generate_binary(args.output)
+            print(f"\nUpload with: sudo ./goldbox_upload.sh {args.output}")
 
         elif args.command == 'test':
-            # Run test configuration
-            print("=== Running FRER Test Configuration ===")
+            # Run Gold Box test configuration
+            print("=== Running Gold Box FRER Test Configuration ===")
             controller.enable_frer()
-            controller.add_stream(1, "00:11:22:33:44:55", "66:77:88:99:AA:BB", 100)
-            controller.add_stream(2, "AA:BB:CC:DD:EE:FF", "11:22:33:44:55:66", 200)
-            controller.configure_replication(1, [0, 1])
-            controller.configure_replication(2, [2, 3])
-            controller.configure_elimination(1, [4, 5])
-            controller.configure_elimination(2, [6, 7])
+            controller.add_goldbox_scenario('test_scenario')
             controller.show_status()
 
-            # Generate test binary
-            test_output = "frer_test.bin"
-            controller.generate_binary(test_output)
-            print(f"\n✓ Test completed. Binary saved to {test_output}")
+            # Generate test binaries
+            uc_output = "sja1110_uc.bin"
+            switch_output = "sja1110_switch.bin"
+
+            # Generate UC firmware (minimal for Gold Box)
+            with open(uc_output, 'wb') as f:
+                # Minimal UC firmware header
+                uc_data = bytearray()
+                uc_data.extend(IMAGE_VALID_MARKER)
+                uc_data.extend(struct.pack('<I', DEVICE_ID_SJA1110))
+                # Pad to expected size
+                while len(uc_data) < 320280:
+                    uc_data.extend(b'\x00')
+                f.write(uc_data)
+            print(f"✓ UC firmware: {uc_output} ({len(uc_data)} bytes)")
+
+            # Generate switch configuration
+            controller.generate_binary(switch_output)
+
+            # Save JSON configuration
+            controller.save_config('goldbox_frer_testplan.json')
+
+            print(f"\n✓ Test completed. Ready for upload:")
+            print(f"   sudo ./goldbox_dual_upload.sh {uc_output} {switch_output}")
+
+        elif args.command == 'upload':
+            # Generate and prepare for upload
+            print("=== Generating Gold Box FRER Configuration ===")
+            controller.enable_frer()
+
+            # Use test scenario if no configuration loaded
+            if not controller.streams:
+                controller.add_goldbox_scenario('test_scenario')
+
+            controller.show_status()
+
+            # Generate binaries
+            uc_file = "sja1110_uc.bin"
+            switch_file = "sja1110_switch.bin"
+
+            # Generate UC firmware
+            with open(uc_file, 'wb') as f:
+                uc_data = bytearray()
+                uc_data.extend(IMAGE_VALID_MARKER)
+                uc_data.extend(struct.pack('<I', DEVICE_ID_SJA1110))
+                while len(uc_data) < 320280:
+                    uc_data.extend(b'\x00')
+                f.write(uc_data)
+
+            # Generate switch configuration
+            controller.generate_binary(switch_file)
+
+            print(f"\n✓ Binary files generated")
+            print(f"\nNow run: sudo ./goldbox_dual_upload.sh {uc_file} {switch_file}")
 
         return 0
 
     except Exception as e:
         print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
         return 1
 
 if __name__ == "__main__":
