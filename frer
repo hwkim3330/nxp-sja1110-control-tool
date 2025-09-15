@@ -1,0 +1,255 @@
+#!/usr/bin/env python3
+"""
+FRER (Frame Replication and Elimination for Reliability) Tool
+for NXP SJA1110 TSN Switch
+
+This tool provides functionality for configuring and managing FRER
+on the SJA1110 switch platform.
+"""
+
+import sys
+import json
+import argparse
+import struct
+import binascii
+import time
+from pathlib import Path
+
+class FRERController:
+    """Controller for FRER functionality on SJA1110"""
+
+    def __init__(self):
+        self.config = {
+            "version": "1.0.0",
+            "device": "SJA1110",
+            "frer_enabled": False,
+            "sequence_recovery": {
+                "algorithm": "match_recovery",
+                "history_length": 256,
+                "reset_timeout": 100
+            },
+            "stream_identification": [],
+            "sequence_generation": [],
+            "sequence_recovery_entries": []
+        }
+
+    def enable_frer(self):
+        """Enable FRER functionality"""
+        self.config["frer_enabled"] = True
+        print("✓ FRER enabled")
+        return True
+
+    def disable_frer(self):
+        """Disable FRER functionality"""
+        self.config["frer_enabled"] = False
+        print("✓ FRER disabled")
+        return True
+
+    def add_stream(self, stream_id, src_mac, dst_mac, vlan_id=None):
+        """Add a stream for FRER processing"""
+        stream = {
+            "stream_id": stream_id,
+            "source_mac": src_mac,
+            "destination_mac": dst_mac,
+            "vlan_id": vlan_id,
+            "active": True
+        }
+        self.config["stream_identification"].append(stream)
+        print(f"✓ Added stream {stream_id}")
+        return True
+
+    def configure_replication(self, stream_id, ports, seq_num_start=0):
+        """Configure frame replication for a stream"""
+        replication = {
+            "stream_id": stream_id,
+            "replication_ports": ports,
+            "sequence_number": seq_num_start,
+            "active": True
+        }
+        self.config["sequence_generation"].append(replication)
+        print(f"✓ Configured replication for stream {stream_id} on ports {ports}")
+        return True
+
+    def configure_elimination(self, stream_id, ports, window_size=10):
+        """Configure frame elimination for a stream"""
+        elimination = {
+            "stream_id": stream_id,
+            "elimination_ports": ports,
+            "window_size": window_size,
+            "duplicate_count": 0,
+            "out_of_order_count": 0,
+            "active": True
+        }
+        self.config["sequence_recovery_entries"].append(elimination)
+        print(f"✓ Configured elimination for stream {stream_id} on ports {ports}")
+        return True
+
+    def show_status(self):
+        """Display current FRER status"""
+        print("\n=== FRER Status ===")
+        print(f"FRER Enabled: {self.config['frer_enabled']}")
+        print(f"Version: {self.config['version']}")
+        print(f"Device: {self.config['device']}")
+
+        print(f"\nConfigured Streams: {len(self.config['stream_identification'])}")
+        for stream in self.config["stream_identification"]:
+            print(f"  - Stream {stream['stream_id']}: {stream['source_mac']} -> {stream['destination_mac']}")
+
+        print(f"\nReplication Entries: {len(self.config['sequence_generation'])}")
+        for rep in self.config["sequence_generation"]:
+            print(f"  - Stream {rep['stream_id']}: Ports {rep['replication_ports']}")
+
+        print(f"\nElimination Entries: {len(self.config['sequence_recovery_entries'])}")
+        for elim in self.config["sequence_recovery_entries"]:
+            print(f"  - Stream {elim['stream_id']}: Ports {elim['elimination_ports']}, Window {elim['window_size']}")
+
+        return True
+
+    def save_config(self, filename):
+        """Save configuration to file"""
+        with open(filename, 'w') as f:
+            json.dump(self.config, f, indent=2)
+        print(f"✓ Configuration saved to {filename}")
+        return True
+
+    def load_config(self, filename):
+        """Load configuration from file"""
+        with open(filename, 'r') as f:
+            self.config = json.load(f)
+        print(f"✓ Configuration loaded from {filename}")
+        return True
+
+    def generate_binary(self, output_file):
+        """Generate binary configuration for hardware upload"""
+        # Create binary header
+        header = struct.pack('<4sHHI', b'FRER', 0x0100, len(self.config["stream_identification"]),
+                           int(self.config["frer_enabled"]))
+
+        # Add stream configurations
+        stream_data = b''
+        for stream in self.config["stream_identification"]:
+            stream_id = struct.pack('<H', stream["stream_id"])
+            src_mac = binascii.unhexlify(stream["source_mac"].replace(':', ''))
+            dst_mac = binascii.unhexlify(stream["destination_mac"].replace(':', ''))
+            vlan = struct.pack('<H', stream["vlan_id"] if stream["vlan_id"] else 0)
+            stream_data += stream_id + src_mac + dst_mac + vlan
+
+        # Add replication configurations
+        rep_data = b''
+        for rep in self.config["sequence_generation"]:
+            rep_entry = struct.pack('<HHI', rep["stream_id"],
+                                  sum(1 << p for p in rep["replication_ports"]),
+                                  rep["sequence_number"])
+            rep_data += rep_entry
+
+        # Add elimination configurations
+        elim_data = b''
+        for elim in self.config["sequence_recovery_entries"]:
+            elim_entry = struct.pack('<HHH', elim["stream_id"],
+                                   sum(1 << p for p in elim["elimination_ports"]),
+                                   elim["window_size"])
+            elim_data += elim_entry
+
+        # Combine all data
+        binary_data = header + stream_data + rep_data + elim_data
+
+        # Pad to 4KB minimum
+        while len(binary_data) < 4096:
+            binary_data += b'\x00'
+
+        with open(output_file, 'wb') as f:
+            f.write(binary_data)
+
+        print(f"✓ Binary configuration generated: {output_file} ({len(binary_data)} bytes)")
+        return True
+
+def main():
+    parser = argparse.ArgumentParser(description='FRER Control Tool for SJA1110')
+    parser.add_argument('command', choices=['enable', 'disable', 'status', 'add-stream',
+                                           'configure-replication', 'configure-elimination',
+                                           'save', 'load', 'generate-binary', 'test'],
+                       help='Command to execute')
+    parser.add_argument('--stream-id', type=int, help='Stream ID')
+    parser.add_argument('--src-mac', help='Source MAC address')
+    parser.add_argument('--dst-mac', help='Destination MAC address')
+    parser.add_argument('--vlan-id', type=int, help='VLAN ID')
+    parser.add_argument('--ports', nargs='+', type=int, help='Port numbers')
+    parser.add_argument('--window-size', type=int, default=10, help='Elimination window size')
+    parser.add_argument('--file', help='Configuration file')
+    parser.add_argument('--output', help='Output file')
+
+    args = parser.parse_args()
+
+    controller = FRERController()
+
+    try:
+        if args.command == 'enable':
+            controller.enable_frer()
+
+        elif args.command == 'disable':
+            controller.disable_frer()
+
+        elif args.command == 'status':
+            controller.show_status()
+
+        elif args.command == 'add-stream':
+            if not all([args.stream_id, args.src_mac, args.dst_mac]):
+                print("Error: --stream-id, --src-mac, and --dst-mac are required")
+                return 1
+            controller.add_stream(args.stream_id, args.src_mac, args.dst_mac, args.vlan_id)
+
+        elif args.command == 'configure-replication':
+            if not all([args.stream_id, args.ports]):
+                print("Error: --stream-id and --ports are required")
+                return 1
+            controller.configure_replication(args.stream_id, args.ports)
+
+        elif args.command == 'configure-elimination':
+            if not all([args.stream_id, args.ports]):
+                print("Error: --stream-id and --ports are required")
+                return 1
+            controller.configure_elimination(args.stream_id, args.ports, args.window_size)
+
+        elif args.command == 'save':
+            if not args.file:
+                print("Error: --file is required")
+                return 1
+            controller.save_config(args.file)
+
+        elif args.command == 'load':
+            if not args.file:
+                print("Error: --file is required")
+                return 1
+            controller.load_config(args.file)
+
+        elif args.command == 'generate-binary':
+            if not args.output:
+                print("Error: --output is required")
+                return 1
+            controller.generate_binary(args.output)
+
+        elif args.command == 'test':
+            # Run test configuration
+            print("=== Running FRER Test Configuration ===")
+            controller.enable_frer()
+            controller.add_stream(1, "00:11:22:33:44:55", "66:77:88:99:AA:BB", 100)
+            controller.add_stream(2, "AA:BB:CC:DD:EE:FF", "11:22:33:44:55:66", 200)
+            controller.configure_replication(1, [0, 1])
+            controller.configure_replication(2, [2, 3])
+            controller.configure_elimination(1, [4, 5])
+            controller.configure_elimination(2, [6, 7])
+            controller.show_status()
+
+            # Generate test binary
+            test_output = "frer_test.bin"
+            controller.generate_binary(test_output)
+            print(f"\n✓ Test completed. Binary saved to {test_output}")
+
+        return 0
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())

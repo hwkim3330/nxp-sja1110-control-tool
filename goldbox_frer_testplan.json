@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-09-13T06:42:07.454311",
+  "device": "S32G-VNP-GLDBOX",
+  "switch": "SJA1110A",
+  "scenarios": [
+    {
+      "name": "PFE_to_P2AB",
+      "description": "Traffic from PFE replicated to P2A and P2B for redundancy",
+      "input_port": "Port 4 (PFE_MAC0 (SGMII))",
+      "replicate_to": [
+        "Port 2 (P2A (1000BASE-T))",
+        "Port 3 (P2B (1000BASE-T))"
+      ],
+      "eliminate_at": "External device",
+      "vlan_id": 100,
+      "priority": 7,
+      "expected_behavior": "Frames from PFE_MAC0 duplicated to both P2A and P2B"
+    },
+    {
+      "name": "P2A_to_PFE",
+      "description": "External traffic from P2A replicated through T1 ports, eliminated at PFE",
+      "input_port": "Port 2 (P2A (1000BASE-T))",
+      "replicate_to": [
+        "Port 5 (P6 (100BASE-T1))",
+        "Port 6 (P7 (100BASE-T1))"
+      ],
+      "eliminate_at": "Port 4 (PFE_MAC0 (SGMII))",
+      "vlan_id": 200,
+      "priority": 6,
+      "expected_behavior": "Frames from P2A sent through P6/P7, duplicates removed at PFE"
+    },
+    {
+      "name": "T1_Ring",
+      "description": "100BASE-T1 ring redundancy for automotive applications",
+      "input_port": "Port 5 (P6 (100BASE-T1))",
+      "replicate_to": [
+        "Port 6 (P7 (100BASE-T1))",
+        "Port 7 (P8 (100BASE-T1))"
+      ],
+      "eliminate_at": "Port 9 (P10 (100BASE-T1))",
+      "vlan_id": 300,
+      "priority": 5,
+      "expected_behavior": "T1 traffic replicated through ring, eliminated at P10"
+    },
+    {
+      "name": "Critical_Control",
+      "description": "Triple redundancy for safety-critical control messages",
+      "input_port": "Port 1 (P1 (100BASE-TX))",
+      "replicate_to": [
+        "Port 2 (P2A (1000BASE-T))",
+        "Port 3 (P2B (1000BASE-T))",
+        "Port 5 (P6 (100BASE-T1))"
+      ],
+      "eliminate_at": "Port 4 (PFE_MAC0 (SGMII))",
+      "vlan_id": 10,
+      "priority": 7,
+      "expected_behavior": "Critical messages triplicated, PFE receives single copy"
+    }
+  ]
+}

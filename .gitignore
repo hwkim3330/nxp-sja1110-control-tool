@@ -1,0 +1,95 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Firmware binaries (keep examples but ignore test builds)
+*.bin
+!example_*.bin
+
+# Generated configuration files (keep templates)
+sja1110_firmware_config.json
+rj45_scenarios_comparison.json
+test_results_*/
+*_test_*.json
+*_test_*.log
+
+# Hardware-specific files
+/dev/tty*
+/dev/spi*
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Documentation build artifacts
+docs/_build/
+docs/site/
+
+# Local development files
+local_*
+debug_*

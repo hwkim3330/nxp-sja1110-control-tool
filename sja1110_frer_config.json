@@ -1,0 +1,53 @@
+{
+  "frer_enabled": true,
+  "streams": [
+    {
+      "handle": 1,
+      "source_mac": "00:11:22:33:44:55",
+      "dest_mac": "66:77:88:99:AA:BB",
+      "vlan_id": 100,
+      "priority": 7
+    },
+    {
+      "handle": 2,
+      "source_mac": "AA:BB:CC:DD:EE:FF",
+      "dest_mac": "11:22:33:44:55:66",
+      "vlan_id": 200,
+      "priority": 6
+    }
+  ],
+  "sequence_generation": [
+    {
+      "stream_handle": 1,
+      "replication_ports": [
+        0
+      ],
+      "enabled": true
+    },
+    {
+      "stream_handle": 2,
+      "replication_ports": [
+        4
+      ],
+      "enabled": true
+    }
+  ],
+  "sequence_recovery": [
+    {
+      "stream_handle": 1,
+      "ingress_port": 3,
+      "algorithm": "VECTOR_RECOVERY",
+      "history_length": 8,
+      "reset_timeout": 100,
+      "enabled": true
+    },
+    {
+      "stream_handle": 2,
+      "ingress_port": 7,
+      "algorithm": "VECTOR_RECOVERY",
+      "history_length": 8,
+      "reset_timeout": 100,
+      "enabled": true
+    }
+  ]
+}

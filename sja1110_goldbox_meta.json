@@ -1,0 +1,33 @@
+{
+  "build_time": "2025-09-13T06:10:13.620271",
+  "builder_version": "1.0.0",
+  "target_device": "SJA1110",
+  "file_size": 393760,
+  "checksum": "0xC1218BD9",
+  "sections": {
+    "0x1000": {
+      "offset": 0,
+      "size": 32
+    },
+    "0x2000": {
+      "offset": 48,
+      "size": 82
+    },
+    "0x3000": {
+      "offset": 144,
+      "size": 62
+    },
+    "0x5000": {
+      "offset": 224,
+      "size": 178
+    },
+    "0x6000": {
+      "offset": 416,
+      "size": 393236
+    },
+    "0x7000": {
+      "offset": 393664,
+      "size": 16
+    }
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "description": "Example FRER configuration for SJA1110",
+  "streams": [
+    {
+      "handle": 1,
+      "name": "Critical Control Stream",
+      "source_mac": "00:11:22:33:44:55",
+      "dest_mac": "66:77:88:99:AA:BB",
+      "vlan_id": 100,
+      "priority": 7,
+      "description": "High-priority control messages with redundancy"
+    },
+    {
+      "handle": 2,
+      "name": "Sensor Data Stream",
+      "source_mac": "AA:BB:CC:DD:EE:FF",
+      "dest_mac": "11:22:33:44:55:66",
+      "vlan_id": 200,
+      "priority": 6,
+      "description": "Time-critical sensor data with frame replication"
+    },
+    {
+      "handle": 3,
+      "name": "Video Stream",
+      "source_mac": "12:34:56:78:9A:BC",
+      "dest_mac": "FE:DC:BA:98:76:54",
+      "vlan_id": 300,
+      "priority": 5,
+      "description": "Real-time video stream with redundancy"
+    }
+  ],
+  "replication": [
+    {
+      "stream_handle": 1,
+      "ports": [1, 2],
+      "description": "Replicate control stream to ports 1 and 2"
+    },
+    {
+      "stream_handle": 2,
+      "ports": [5, 6],
+      "description": "Replicate sensor data to ports 5 and 6"
+    },
+    {
+      "stream_handle": 3,
+      "ports": [8, 9],
+      "description": "Replicate video stream to ports 8 and 9"
+    }
+  ],
+  "elimination": [
+    {
+      "stream_handle": 1,
+      "port": 3,
+      "algorithm": "VECTOR_RECOVERY",
+      "history_length": 16,
+      "reset_timeout": 100,
+      "description": "Eliminate duplicates for control stream at port 3"
+    },
+    {
+      "stream_handle": 2,
+      "port": 7,
+      "algorithm": "MATCH_RECOVERY",
+      "history_length": 8,
+      "reset_timeout": 200,
+      "description": "Eliminate duplicates for sensor data at port 7"
+    },
+    {
+      "stream_handle": 3,
+      "port": 10,
+      "algorithm": "VECTOR_RECOVERY",
+      "history_length": 32,
+      "reset_timeout": 50,
+      "description": "Eliminate duplicates for video stream at port 10"
+    }
+  ],
+  "redundant_paths": [
+    {
+      "stream_handle": 1,
+      "primary_path": [0, 1, 3],
+      "secondary_path": [0, 2, 3],
+      "description": "Redundant paths for critical control messages"
+    },
+    {
+      "stream_handle": 2,
+      "primary_path": [4, 5, 7],
+      "secondary_path": [4, 6, 7],
+      "description": "Redundant paths for sensor data"
+    },
+    {
+      "stream_handle": 3,
+      "primary_path": [8, 9, 10],
+      "secondary_path": [8, 9, 10],
+      "description": "Redundant paths for video stream"
+    }
+  ]
+}
