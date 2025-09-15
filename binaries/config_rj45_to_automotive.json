@@ -1,0 +1,41 @@
+{
+  "scenario": "rj45_to_automotive",
+  "description": "RJ45 to T1 automotive network bridge",
+  "streams": [
+    {
+      "id": 1,
+      "src_port": 2,
+      "dst_ports": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "vlan": 100,
+      "name": "P2A_to_T1"
+    },
+    {
+      "id": 2,
+      "src_port": 1,
+      "dst_ports": [
+        5,
+        6
+      ],
+      "vlan": 200,
+      "name": "P1_to_T1_pair"
+    },
+    {
+      "id": 3,
+      "src_port": 4,
+      "dst_ports": [
+        7,
+        8,
+        9
+      ],
+      "vlan": 300,
+      "name": "P3_to_T1_triple"
+    }
+  ],
+  "uc_file": "sja1110_uc_rj45_to_automotive.bin",
+  "switch_file": "sja1110_switch_rj45_to_automotive.bin"
+}

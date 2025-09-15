@@ -1,0 +1,38 @@
+{
+  "scenario": "ring_topology",
+  "description": "Ring topology for redundancy",
+  "streams": [
+    {
+      "id": 1,
+      "src_port": 2,
+      "dst_ports": [
+        3,
+        5
+      ],
+      "vlan": 100,
+      "name": "Ring_In"
+    },
+    {
+      "id": 2,
+      "src_port": 5,
+      "dst_ports": [
+        6,
+        7
+      ],
+      "vlan": 200,
+      "name": "T1_Ring"
+    },
+    {
+      "id": 3,
+      "src_port": 7,
+      "dst_ports": [
+        1,
+        4
+      ],
+      "vlan": 300,
+      "name": "Backup_Path"
+    }
+  ],
+  "uc_file": "sja1110_uc_ring_topology.bin",
+  "switch_file": "sja1110_switch_ring_topology.bin"
+}

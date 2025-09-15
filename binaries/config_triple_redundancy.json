@@ -1,0 +1,44 @@
+{
+  "scenario": "triple_redundancy",
+  "description": "Triple redundancy for critical systems",
+  "streams": [
+    {
+      "id": 1,
+      "src_port": 0,
+      "dst_ports": [
+        2,
+        3,
+        4
+      ],
+      "vlan": 10,
+      "priority": 7,
+      "name": "Critical_Triple_1"
+    },
+    {
+      "id": 2,
+      "src_port": 1,
+      "dst_ports": [
+        5,
+        6,
+        7
+      ],
+      "vlan": 20,
+      "priority": 7,
+      "name": "Critical_Triple_2"
+    },
+    {
+      "id": 3,
+      "src_port": 2,
+      "dst_ports": [
+        8,
+        9,
+        10
+      ],
+      "vlan": 30,
+      "priority": 7,
+      "name": "Critical_Triple_3"
+    }
+  ],
+  "uc_file": "sja1110_uc_triple_redundancy.bin",
+  "switch_file": "sja1110_switch_triple_redundancy.bin"
+}

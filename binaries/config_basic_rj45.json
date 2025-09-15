@@ -1,0 +1,28 @@
+{
+  "scenario": "basic_rj45",
+  "description": "Basic RJ45 frame replication",
+  "streams": [
+    {
+      "id": 1,
+      "src_port": 1,
+      "dst_ports": [
+        2,
+        3
+      ],
+      "vlan": 100,
+      "name": "P1_to_P2AB"
+    },
+    {
+      "id": 2,
+      "src_port": 2,
+      "dst_ports": [
+        1,
+        4
+      ],
+      "vlan": 200,
+      "name": "P2A_to_P1P3"
+    }
+  ],
+  "uc_file": "sja1110_uc_basic_rj45.bin",
+  "switch_file": "sja1110_switch_basic_rj45.bin"
+}

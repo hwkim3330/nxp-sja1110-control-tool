@@ -1,0 +1,46 @@
+{
+  "scenario": "mixed_automotive",
+  "description": "Mixed automotive ECU network",
+  "streams": [
+    {
+      "id": 1,
+      "src_port": 1,
+      "dst_ports": [
+        5,
+        6,
+        7
+      ],
+      "vlan": 100,
+      "name": "Diagnostic_to_ECU"
+    },
+    {
+      "id": 2,
+      "src_port": 5,
+      "dst_ports": [
+        0,
+        2
+      ],
+      "vlan": 200,
+      "name": "Sensor_Aggregation"
+    },
+    {
+      "id": 3,
+      "src_port": 0,
+      "dst_ports": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "vlan": 10,
+      "priority": 7,
+      "name": "Safety_Broadcast"
+    }
+  ],
+  "uc_file": "sja1110_uc_mixed_automotive.bin",
+  "switch_file": "sja1110_switch_mixed_automotive.bin"
+}

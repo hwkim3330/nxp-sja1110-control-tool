@@ -66,9 +66,10 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Firmware binaries (keep examples but ignore test builds)
-*.bin
-!example_*.bin
+# Firmware binaries (keep all FRER binaries)
+# *.bin
+!sja1110_*.bin
+!binaries/*.bin
 
 # Generated configuration files (keep templates)
 sja1110_firmware_config.json

@@ -1,0 +1,41 @@
+{
+  "scenario": "redundant_gateway",
+  "description": "Redundant gateway with backup paths",
+  "streams": [
+    {
+      "id": 1,
+      "src_port": 2,
+      "dst_ports": [
+        0,
+        5
+      ],
+      "vlan": 100,
+      "name": "External_to_PFE"
+    },
+    {
+      "id": 2,
+      "src_port": 0,
+      "dst_ports": [
+        2,
+        3
+      ],
+      "vlan": 200,
+      "name": "PFE_to_External"
+    },
+    {
+      "id": 3,
+      "src_port": 1,
+      "dst_ports": [
+        2,
+        3,
+        4,
+        0
+      ],
+      "vlan": 10,
+      "priority": 7,
+      "name": "Control_Critical"
+    }
+  ],
+  "uc_file": "sja1110_uc_redundant_gateway.bin",
+  "switch_file": "sja1110_switch_redundant_gateway.bin"
+}

@@ -1,0 +1,32 @@
+{
+  "scenario": "load_balancing",
+  "description": "Traffic load balancing",
+  "streams": [
+    {
+      "id": 1,
+      "src_port": 2,
+      "dst_ports": [
+        1,
+        4,
+        5,
+        6
+      ],
+      "vlan": 100,
+      "name": "High_Speed_Distribution"
+    },
+    {
+      "id": 2,
+      "src_port": 3,
+      "dst_ports": [
+        0,
+        2,
+        7,
+        8
+      ],
+      "vlan": 200,
+      "name": "Premium_Replication"
+    }
+  ],
+  "uc_file": "sja1110_uc_load_balancing.bin",
+  "switch_file": "sja1110_switch_load_balancing.bin"
+}
