@@ -23,12 +23,14 @@ class SJA1110FirmwareBuilder:
         
         # SJA1110 Hardware Configuration
         self.port_config = {
-            # Physical ports on Gold Box
-            0: {'type': 'CPU', 'speed': '1000M', 'name': 'S32G_PFE'},
+            # Physical ports on Gold Box (corrected)
+            # Note: PFE_MAC0 is connected to SJA1110 as Port 4 via SGMII.
+            #       P3A/P3B are direct to S32G and NOT through SJA1110.
+            0: {'type': 'CPU', 'speed': '1000M', 'name': 'S32G_PFE_LEGACY'},  # legacy placeholder, not used
             1: {'type': '100BASE-TX', 'speed': '100M', 'name': 'P1'},
             2: {'type': '1000BASE-T', 'speed': '1000M', 'name': 'P2A'},
             3: {'type': '1000BASE-T', 'speed': '1000M', 'name': 'P2B'},
-            4: {'type': '1000BASE-T', 'speed': '1000M', 'name': 'P3'},
+            4: {'type': 'CPU', 'speed': '1000M', 'name': 'PFE_MAC0'},
             5: {'type': '100BASE-T1', 'speed': '100M', 'name': 'P6'},
             6: {'type': '100BASE-T1', 'speed': '100M', 'name': 'P7'},
             7: {'type': '100BASE-T1', 'speed': '100M', 'name': 'P8'},
@@ -260,7 +262,7 @@ def main():
     # Scenario 1: PFE to External Ports (Replication)
     builder.add_frer_replication_stream(
         stream_id=1,
-        src_port=0,  # S32G PFE
+        src_port=4,  # PFE_MAC0 (SJA1110 Port 4)
         dst_ports=[2, 3],  # P2A, P2B
         vlan_id=100,
         priority=7,
@@ -290,7 +292,7 @@ def main():
     # Scenario 4: Critical Triple Replication
     builder.add_frer_replication_stream(
         stream_id=4,
-        src_port=0,  # PFE
+        src_port=4,  # PFE_MAC0
         dst_ports=[5, 6, 7],  # P6, P7, P8
         vlan_id=103,
         priority=7,

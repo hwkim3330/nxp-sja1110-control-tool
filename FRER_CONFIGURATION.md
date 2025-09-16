@@ -22,22 +22,23 @@ FRER은 **하나의 프레임을 여러 경로로 복제**하여 전송하고, �
 
 ## Gold Box 포트 구성
 
-### 물리적 포트 매핑
+### 물리적 포트 매핑 (검증)
 ```
 SJA1110 Port | Gold Box 커넥터 | 타입         | 속도
--------------|----------------|--------------|--------
-Port 0       | PFE (내부)      | S32G CPU     | 1Gbps
-Port 1       | P1             | RJ45         | 100Mbps
-Port 2       | P2A            | RJ45         | 1Gbps
-Port 3       | P2B            | RJ45         | 1Gbps
-Port 4       | P3             | RJ45         | 1Gbps
-Port 5       | P6             | 100BASE-T1   | 100Mbps
-Port 6       | P7             | 100BASE-T1   | 100Mbps
-Port 7       | P8             | 100BASE-T1   | 100Mbps
-Port 8       | P9             | 100BASE-T1   | 100Mbps
-Port 9       | P10            | 100BASE-T1   | 100Mbps
-Port 10      | P11            | 100BASE-T1   | 100Mbps
+-------------|------------------|--------------|--------
+Port 1       | P1               | RJ45         | 100Mbps
+Port 2       | P2A              | RJ45         | 1Gbps
+Port 3       | P2B              | RJ45         | 1Gbps
+Port 4       | PFE_MAC0         | Internal     | 1Gbps (SGMII)
+Port 5       | P6               | 100BASE-T1   | 100Mbps
+Port 6       | P7               | 100BASE-T1   | 100Mbps
+Port 7       | P8               | 100BASE-T1   | 100Mbps
+Port 8       | P9               | 100BASE-T1   | 100Mbps
+Port 9       | P10              | 100BASE-T1   | 100Mbps
+Port 10      | P11              | 100BASE-T1   | 100Mbps
 ```
+
+주의: P3A(GMAC0), P3B(PFE_MAC2), P5(PFE_MAC1)는 SJA1110을 거치지 않는 직접 연결 포트로, FRER 적용 대상이 아닙니다. 자세한 구조는 `CORRECT_PORT_MAPPING.md`를 참고하세요.
 
 ## 구현된 FRER 시나리오
 

@@ -29,25 +29,28 @@ NXP S32G-VNP-GLDBOX (Gold Box)의 SJA1110 TSN 스위치에서 FRER 프레임 복
 - **S32G274A 프로세서** (PFE 포함)
 
 ### 연결 인터페이스
-- **RJ45 포트**: P1 (100M), P2A/P2B (1G), P3 (1G)
+- **RJ45 포트**: P1 (100M), P2A/P2B (1G), P3A/P3B (1G, SJA1110 미경유)
 - **100BASE-T1 포트**: P6-P11 (자동차용 이더넷)
 - **내부 연결**: S32G PFE (CPU 인터페이스)
 
-## 🔌 포트 매핑
+## 🔌 포트 매핑 (검증됨)
 
-| Physical Port | Type | Speed | SJA1110 Port | Description |
-|---------------|------|-------|--------------|-------------|
-| **P1** | RJ45 | 100BASE-TX | Port 1 | 100Mbps Ethernet |
-| **P2A** | RJ45 | 1000BASE-T | Port 2 | 1Gbps Ethernet A |
-| **P2B** | RJ45 | 1000BASE-T | Port 3 | 1Gbps Ethernet B |
-| **P3** | RJ45 | 1000BASE-T | Port 4 | 1Gbps Ethernet |
-| **P6** | T1 | 100BASE-T1 | Port 5 | Automotive T1 |
-| **P7** | T1 | 100BASE-T1 | Port 6 | Automotive T1 |
-| **P8** | T1 | 100BASE-T1 | Port 7 | Automotive T1 |
-| **P9** | T1 | 100BASE-T1 | Port 8 | Automotive T1 |
-| **P10** | T1 | 100BASE-T1 | Port 9 | Automotive T1 |
-| **P11** | T1 | 100BASE-T1 | Port 10 | Automotive T1 |
-| **PFE** | Internal | 1000M | Port 0 | S32G CPU Interface |
+중요: P3A/P3B, P5는 SJA1110 스위치를 거치지 않습니다. FRER는 SJA1110 경유 포트에서만 적용됩니다. 자세한 도식은 `CORRECT_PORT_MAPPING.md` 참고.
+
+| SJA1110 Port | Physical | Type | Speed | 설명 |
+|--------------|----------|------|-------|------|
+| Port 1 | P1 | RJ45 | 100M | 100BASE-TX |
+| Port 2 | P2A | RJ45 | 1G | 1000BASE-T |
+| Port 3 | P2B | RJ45 | 1G | 1000BASE-T |
+| Port 4 | PFE_MAC0 | Internal | 1G | S32G CPU (SGMII) |
+| Port 5 | P6 | T1 | 100M | 100BASE-T1 |
+| Port 6 | P7 | T1 | 100M | 100BASE-T1 |
+| Port 7 | P8 | T1 | 100M | 100BASE-T1 |
+| Port 8 | P9 | T1 | 100M | 100BASE-T1 |
+| Port 9 | P10 | T1 | 100M | 100BASE-T1 |
+| Port 10 | P11 | T1 | 100M | 100BASE-T1 |
+
+직접 연결(스위치 미경유, FRER 불가): P3A(GMAC0), P3B(PFE_MAC2), P5(PFE_MAC1)
 
 ## 🎯 FRER 시나리오
 
