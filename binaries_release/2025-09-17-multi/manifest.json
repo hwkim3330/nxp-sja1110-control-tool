@@ -1,0 +1,125 @@
+{
+  "release": "2025-09-17-multi",
+  "scenarios": [
+    {
+      "name": "p4_to_p2ab",
+      "files": {
+        "uc": "sja1110_uc_p4_to_p2ab.bin",
+        "switch": "sja1110_switch_p4_to_p2ab.bin"
+      },
+      "streams": [
+        {
+          "id": 1,
+          "src": 4,
+          "dst": [
+            2,
+            3
+          ],
+          "name": "PFE_to_P2AB"
+        }
+      ],
+      "vlan": 100,
+      "generated": "2025-09-17T09:54:08.636565"
+    },
+    {
+      "name": "p4_to_p2ab_untag",
+      "files": {
+        "uc": "sja1110_uc_p4_to_p2ab_untag.bin",
+        "switch": "sja1110_switch_p4_to_p2ab_untag.bin"
+      },
+      "streams": [
+        {
+          "id": 1,
+          "src": 4,
+          "dst": [
+            2,
+            3
+          ],
+          "name": "PFE_to_P2AB"
+        }
+      ],
+      "vlan": 0,
+      "generated": "2025-09-17T09:54:08.667993"
+    },
+    {
+      "name": "p4_to_t1_p6p7",
+      "files": {
+        "uc": "sja1110_uc_p4_to_t1_p6p7.bin",
+        "switch": "sja1110_switch_p4_to_t1_p6p7.bin"
+      },
+      "streams": [
+        {
+          "id": 2,
+          "src": 4,
+          "dst": [
+            5,
+            6
+          ],
+          "name": "PFE_to_T1_P6P7"
+        }
+      ],
+      "vlan": 100,
+      "generated": "2025-09-17T09:54:08.700055"
+    },
+    {
+      "name": "p4_to_t1_p6p7_untag",
+      "files": {
+        "uc": "sja1110_uc_p4_to_t1_p6p7_untag.bin",
+        "switch": "sja1110_switch_p4_to_t1_p6p7_untag.bin"
+      },
+      "streams": [
+        {
+          "id": 2,
+          "src": 4,
+          "dst": [
+            5,
+            6
+          ],
+          "name": "PFE_to_T1_P6P7"
+        }
+      ],
+      "vlan": 0,
+      "generated": "2025-09-17T09:54:08.731523"
+    },
+    {
+      "name": "p2a_to_p4_p2b",
+      "files": {
+        "uc": "sja1110_uc_p2a_to_p4_p2b.bin",
+        "switch": "sja1110_switch_p2a_to_p4_p2b.bin"
+      },
+      "streams": [
+        {
+          "id": 3,
+          "src": 2,
+          "dst": [
+            4,
+            3
+          ],
+          "name": "P2A_to_PFE_P2B"
+        }
+      ],
+      "vlan": 100,
+      "generated": "2025-09-17T09:54:08.762956"
+    },
+    {
+      "name": "p2a_to_p4_p2b_untag",
+      "files": {
+        "uc": "sja1110_uc_p2a_to_p4_p2b_untag.bin",
+        "switch": "sja1110_switch_p2a_to_p4_p2b_untag.bin"
+      },
+      "streams": [
+        {
+          "id": 3,
+          "src": 2,
+          "dst": [
+            4,
+            3
+          ],
+          "name": "P2A_to_PFE_P2B"
+        }
+      ],
+      "vlan": 0,
+      "generated": "2025-09-17T09:54:08.794531"
+    }
+  ]
+}
