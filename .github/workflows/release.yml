@@ -1,0 +1,31 @@
+name: Create GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p dist
+          zip -r dist/frer-validated-2025-09-16-p4-to-p2ab.zip binaries_release/2025-09-16-p4-to-p2ab
+          zip -r dist/frer-validated-2025-09-17-multi.zip binaries_release/2025-09-17-multi
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.zip
+            binaries_release/2025-09-16-p4-to-p2ab/*.bin
+            binaries_release/2025-09-17-multi/*.bin
