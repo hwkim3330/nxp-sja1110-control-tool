@@ -66,10 +66,11 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Firmware binaries (keep all FRER binaries)
-# *.bin
-!sja1110_*.bin
-!binaries/*.bin
+# Firmware binaries
+# Keep binaries under versioned release folders, ignore root-level bins
+/*.bin
+!binaries_release/**
+!archive/**
 
 # Generated configuration files (keep templates)
 sja1110_firmware_config.json

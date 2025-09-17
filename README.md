@@ -129,11 +129,21 @@ python3 src/sja1110_dual_firmware.py
 
 ### 4. Gold Box에 업로드
 ```bash
-# 원하는 시나리오 선택하여 업로드
-sudo ./goldbox_dual_upload.sh sja1110_uc_basic_rj45.bin sja1110_switch_basic_rj45.bin
+# 권장: 검증된 릴리스 바이너리 사용
+cd binaries_release/2025-09-16-p4-to-p2ab/
+sudo ../../goldbox_dual_upload.sh sja1110_uc.bin sja1110_switch.bin
 
-# 또는 기본 시나리오
-sudo ./goldbox_dual_upload.sh sja1110_uc.bin sja1110_switch.bin
+# VLAN 태그 없이 테스트하려면(언태그)
+sudo ../../goldbox_dual_upload.sh sja1110_uc_p4_to_p2ab_untag.bin sja1110_switch_p4_to_p2ab_untag.bin
+```
+
+### 4-1. 수동(sysfs) 업로드 (대안)
+```bash
+sudo cp binaries_release/2025-09-16-p4-to-p2ab/*.bin /lib/firmware/
+
+# 순서: 스위치 → UC
+echo sja1110_switch.bin | sudo tee /sys/bus/spi/devices/spi0.0/switch-configuration/switch_cfg_upload
+echo sja1110_uc.bin | sudo tee /sys/bus/spi/devices/spi0.1/uc-configuration/uc_fw_upload
 ```
 
 ## 🧪 테스트 방법
