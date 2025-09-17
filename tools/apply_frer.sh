@@ -2,8 +2,10 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: $0 <UC_BIN> <SWITCH_BIN>" >&2
-  echo "Example: $0 sja1110_uc.bin sja1110_switch.bin" >&2
+  echo "Usage: $0 <UC_BIN|def> <SWITCH_BIN>" >&2
+  echo "Examples:" >&2
+  echo "  $0 def binaries_release/latest/sja1110_switch.bin   # use default UC from system" >&2
+  echo "  $0 sja1110_uc.bin sja1110_switch.bin               # upload both from cwd" >&2
 }
 
 if [[ ${EUID} -ne 0 ]]; then
@@ -19,16 +21,23 @@ fi
 UC_FILE="$1"
 SW_FILE="$2"
 
-if [[ ! -f "$UC_FILE" || ! -f "$SW_FILE" ]]; then
-  echo "Firmware files not found: $UC_FILE / $SW_FILE" >&2
+if [[ "$UC_FILE" != "def" && ! -f "$UC_FILE" ]]; then
+  echo "UC firmware not found: $UC_FILE (use 'def' to keep system default)" >&2
+  exit 1
+fi
+if [[ ! -f "$SW_FILE" ]]; then
+  echo "Switch config not found: $SW_FILE" >&2
   exit 1
 fi
 
 FWDIR="/lib/firmware"
 echo "Copying firmware to $FWDIR" >&2
-cp -f "$UC_FILE" "$FWDIR/"
+if [[ "$UC_FILE" != "def" ]]; then
+  cp -f "$UC_FILE" "$FWDIR/"
+  chmod 644 "$FWDIR/$(basename "$UC_FILE")"
+fi
 cp -f "$SW_FILE" "$FWDIR/"
-chmod 644 "$FWDIR/$(basename "$UC_FILE")" "$FWDIR/$(basename "$SW_FILE")"
+chmod 644 "$FWDIR/$(basename "$SW_FILE")"
 
 # Detect sysfs endpoints
 find_endpoint() {
@@ -60,7 +69,11 @@ echo "Uploading switch config: $(basename "$SW_FILE")" >&2
 echo "$(basename "$SW_FILE")" > "$SW_DIR/switch_cfg_upload"
 
 echo "Uploading uC firmware: $(basename "$UC_FILE")" >&2
-echo "$(basename "$UC_FILE")" > "$UC_DIR/uc_fw_upload"
+if [[ "$UC_FILE" == "def" ]]; then
+  echo def > "$UC_DIR/uc_fw_upload"
+else
+  echo "$(basename "$UC_FILE")" > "$UC_DIR/uc_fw_upload"
+fi
 
 # Optional reset
 if [[ -e "$SW_DIR/switch_reset" ]]; then
@@ -83,5 +96,7 @@ else
   echo "FRER status not available in sysfs." >&2
 fi
 
-echo "Done."
+echo "dmesg (last 50 lines):" >&2
+dmesg | tail -n 50 || true
 
+echo "Done."

@@ -324,6 +324,6 @@ with open('custom_switch.bin', 'wb') as f:
 ## ⚡ Quick Start (Clean)
 - Recommended (untagged):
   - `cd binaries_release/latest`
-  - `sudo ../../tools/apply_frer.sh sja1110_uc.bin sja1110_switch.bin`
+  - `sudo ../../tools/apply_frer.sh def sja1110_switch.bin`  (use system's default UC firmware)
 - More scenarios: `binaries_release/2025-09-17-multi` (tagged/untagged). See `SCENARIOS.md`.
 - Details: `RELEASE_NOTES.md`.
