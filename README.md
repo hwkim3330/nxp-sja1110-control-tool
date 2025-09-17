@@ -321,3 +321,9 @@ with open('custom_switch.bin', 'wb') as f:
 
 **Created by**: TSN Performance Testing Team  
 **Contact**: 이슈 또는 질문이 있으시면 GitHub Issues를 이용해주세요.
+## ⚡ Quick Start
+- Recommended (untagged):
+  - `cd binaries_release/2025-09-16-p4-to-p2ab`
+  - `sudo ../../tools/apply_frer.sh sja1110_uc_p4_to_p2ab_untag.bin sja1110_switch_p4_to_p2ab_untag.bin`
+- Or pick from `binaries_release/2025-09-17-multi` (tagged/untagged provided).
+- Details: see `RELEASE_NOTES.md`.
