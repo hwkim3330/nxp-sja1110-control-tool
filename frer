@@ -20,6 +20,11 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import IntEnum
 
+SCRIPT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_ROOT / 'src'))
+
+from sja1110_dual_firmware import SJA1110FirmwareBuilder
+
 # SJA1110 Hardware Constants
 IMAGE_VALID_MARKER = b'\x6A\xA6\x6A\xA6\x6A\xA6\x6A\xA6'
 DEVICE_ID_SJA1110 = 0xb700030e
@@ -278,91 +283,27 @@ class FRERController:
 
     def generate_binary(self, output_file):
         """Generate SJA1110 switch.bin configuration for Gold Box"""
-        config = bytearray()
+        builder = SJA1110FirmwareBuilder(
+            host_port=self.general_params['host_port'],
+            cascade_port=self.general_params['casc_port'],
+        )
 
-        # Header with valid marker
-        config.extend(IMAGE_VALID_MARKER)
+        for stream in self.streams:
+            builder.add_frer_replication_stream(
+                stream_id=stream.stream_id,
+                src_port=stream.ingress_port,
+                dst_ports=stream.egress_ports,
+                vlan_id=stream.vlan_id,
+                priority=stream.priority,
+                name=stream.name,
+                sequence_history=stream.sequence_history,
+            )
 
-        # Device ID
-        config.extend(struct.pack('<I', DEVICE_ID_SJA1110))
-
-        # Configuration flags
-        config_flags = (1 << 31) | (1 << 30) | (1 << 29) | (1 << 28)
-        config.extend(struct.pack('<I', config_flags))
-
-        # Pad to General Parameters offset
-        while len(config) < GENERAL_PARAMS_OFFSET:
-            config.extend(b'\x00')
-
-        # General Parameters
-        # FRMREPEN (Frame Replication Enable) at offset 0x034000
-        config.extend(struct.pack('<I', 1 if self.general_params['frmrepen'] else 0))
-
-        # Host port and cascade port
-        config.extend(struct.pack('<BB',
-                                 self.general_params['host_port'],
-                                 self.general_params['casc_port']))
-
-        # Pad to CB Sequence Generation Table
-        while len(config) < CB_SEQ_GEN_TABLE_OFFSET:
-            config.extend(b'\x00')
-
-        # CB Sequence Generation Table (for frame replication)
-        for entry in self.cb_seq_gen_entries:
-            flags = 0x80 if entry['enabled'] else 0x00
-            cb_entry = struct.pack('<HHBH',
-                                  entry['stream_handle'],
-                                  entry['port_mask'],
-                                  flags,
-                                  entry['seq_num'])
-            config.extend(cb_entry)
-
-        # Pad to CB Individual Recovery Table
-        while len(config) < CB_IND_REC_TABLE_OFFSET:
-            config.extend(b'\x00')
-
-        # CB Individual Recovery Table (for duplicate elimination)
-        for entry in self.cb_ind_rec_entries:
-            flags = 0x80 if entry['enabled'] else 0x00
-            rec_entry = struct.pack('<HBBHHH',
-                                   entry['stream_handle'],
-                                   entry['ingress_port'],
-                                   flags,
-                                   entry['seq_num'],
-                                   entry['history_len'],
-                                   entry['reset_timeout'])
-            config.extend(rec_entry)
-
-        # Pad to DPI Table
-        while len(config) < DPI_TABLE_OFFSET:
-            config.extend(b'\x00')
-
-        # DPI Configuration (Deep Packet Inspection for stream identification)
-        for stream_id, dpi_cfg in self.dpi_entries.items():
-            dpi_entry = struct.pack('<HHHBBBB',
-                                   stream_id,
-                                   dpi_cfg['vlan_id'],
-                                   dpi_cfg['rtag_type'],
-                                   dpi_cfg['cb_en'],
-                                   1,  # sn_num_greater
-                                   dpi_cfg['priority'],
-                                   dpi_cfg['ingress_port'])
-            config.extend(dpi_entry)
-
-        # Pad to minimum size (655360 bytes for Gold Box)
-        MIN_SIZE = 655360
-        while len(config) < MIN_SIZE:
-            config.extend(b'\x00')
-
-        # Calculate and add CRC32
-        crc = zlib.crc32(bytes(config)) & 0xFFFFFFFF
-        config.extend(struct.pack('<I', crc))
-
-        # Write to file
+        config_bytes = builder.build_switch_firmware()
         with open(output_file, 'wb') as f:
-            f.write(bytes(config))
+            f.write(config_bytes)
 
-        print(f"✓ Binary configuration generated: {output_file} ({len(config)} bytes)")
+        print(f"✓ Binary configuration generated: {output_file} ({len(config_bytes)} bytes)")
         return True
 
 def main():

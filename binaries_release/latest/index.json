@@ -1,19 +1,17 @@
 {
+  "generated": "2025-09-27",
   "recommended": {
     "name": "p4_to_p2ab_untag",
     "uc": "sja1110_uc.bin",
     "switch": "sja1110_switch.bin",
     "ingress": "P4 (PFE_MAC0)",
-    "egress": [
-      "P2A",
-      "P2B"
-    ],
+    "egress": ["P2A", "P2B"],
     "vlan": 0
   },
   "alternatives": [
     {
-      "name": "p4_to_p2ab",
-      "dir": "../2025-09-17-multi",
+      "name": "p4_to_p2ab_vlan100",
+      "dir": "../2025-09-27-multi",
       "files": [
         "sja1110_uc_p4_to_p2ab.bin",
         "sja1110_switch_p4_to_p2ab.bin"
@@ -21,22 +19,22 @@
       "vlan": 100
     },
     {
-      "name": "p4_to_t1_p6p7_untag",
-      "dir": "../2025-09-17-multi",
+      "name": "p4_to_t1_p6p7",
+      "dir": "../2025-09-27-multi",
       "files": [
-        "sja1110_uc_p4_to_t1_p6p7_untag.bin",
-        "sja1110_switch_p4_to_t1_p6p7_untag.bin"
+        "sja1110_uc_p4_to_t1_p6p7.bin",
+        "sja1110_switch_p4_to_t1_p6p7.bin"
       ],
-      "vlan": 0
+      "vlan": 100
     },
     {
-      "name": "p2a_to_p4_p2b_untag",
-      "dir": "../2025-09-17-multi",
+      "name": "p2a_to_p4_p2b",
+      "dir": "../2025-09-27-multi",
       "files": [
-        "sja1110_uc_p2a_to_p4_p2b_untag.bin",
-        "sja1110_switch_p2a_to_p4_p2b_untag.bin"
+        "sja1110_uc_p2a_to_p4_p2b.bin",
+        "sja1110_switch_p2a_to_p4_p2b.bin"
       ],
-      "vlan": 0
+      "vlan": 100
     }
   ]
 }

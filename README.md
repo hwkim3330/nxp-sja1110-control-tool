@@ -11,6 +11,7 @@ NXP S32G-VNP-GLDBOX (Gold Box)의 SJA1110 TSN 스위치에서 FRER 프레임 복
 - **실제 포트 매핑**: Gold Box의 물리적 포트와 정확한 매칭
 - **자동 업로드**: Gold Box 펌웨어 업로드 스크립트 포함
 - **포괄적 테스트**: FRER 기능 검증 도구
+- **CRC32 자동 처리**: 생성된 모든 바이너리에 올바른 헤더와 CRC32 트레일러 자동 삽입
 
 ## 📋 목차
 
@@ -130,20 +131,31 @@ python3 src/sja1110_dual_firmware.py
 ### 4. Gold Box에 업로드
 ```bash
 # 권장: 검증된 릴리스 바이너리 사용
-cd binaries_release/2025-09-16-p4-to-p2ab/
+cd binaries_release/latest
 sudo ../../goldbox_dual_upload.sh sja1110_uc.bin sja1110_switch.bin
 
-# VLAN 태그 없이 테스트하려면(언태그)
-sudo ../../goldbox_dual_upload.sh sja1110_uc_p4_to_p2ab_untag.bin sja1110_switch_p4_to_p2ab_untag.bin
+# VLAN 태그 버전을 사용하려면 (tagged 100)
+sudo ../../goldbox_dual_upload.sh ../2025-09-27-multi/sja1110_uc_p4_to_p2ab.bin \
+                                     ../2025-09-27-multi/sja1110_switch_p4_to_p2ab.bin
 ```
 
 ### 4-1. 수동(sysfs) 업로드 (대안)
 ```bash
-sudo cp binaries_release/2025-09-16-p4-to-p2ab/*.bin /lib/firmware/
+sudo cp binaries_release/latest/*.bin /lib/firmware/
 
 # 순서: 스위치 → UC
 echo sja1110_switch.bin | sudo tee /sys/bus/spi/devices/spi0.0/switch-configuration/switch_cfg_upload
 echo sja1110_uc.bin | sudo tee /sys/bus/spi/devices/spi0.1/uc-configuration/uc_fw_upload
+```
+
+### ✅ CRC32 검증/재계산
+
+펌웨어 파일을 편집한 뒤에는 마지막 4바이트 CRC32 트레일러를 반드시 갱신해야 합니다. 저장소에 포함된 `tools/fix_crc.py`를 사용하면 쉽게 재계산할 수 있습니다.
+
+```bash
+# 여러 바이너리를 한 번에 검증 및 갱신
+./tools/fix_crc.py sja1110_switch.bin sja1110_uc.bin
+# 출력 예: "✓ Updated sja1110_switch.bin CRC32 to 0xXXXXXXXX"
 ```
 
 ## 🧪 테스트 방법

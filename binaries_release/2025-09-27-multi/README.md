@@ -1,0 +1,16 @@
+# 2025-09-27 FRER Multi-Scenario Release
+
+Validated FRER binaries generated with the CRC-safe builder.
+
+## Contents
+- `sja1110_uc_p4_to_p2ab[_untag].bin` + `sja1110_switch_p4_to_p2ab[_untag].bin`
+- `sja1110_uc_p4_to_t1_p6p7[_untag].bin` + `sja1110_switch_p4_to_t1_p6p7[_untag].bin`
+- `sja1110_uc_p2a_to_p4_p2b[_untag].bin` + matching switch binaries
+- `manifest.json` (metadata describing each stream)
+
+## Usage
+```bash
+sudo ../../tools/apply_frer.sh sja1110_uc_p4_to_p2ab_untag.bin sja1110_switch_p4_to_p2ab_untag.bin
+```
+
+Use the tagged variants when VLAN separation is required (VLAN 100). All binaries include fully verified IMAGE_VALID_MARKER headers and CRC32 trailers.

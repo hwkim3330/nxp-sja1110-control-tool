@@ -3,20 +3,21 @@
 This release provides known‑good FRER binaries and simple tooling for the Gold Box.
 
 ## What’s Included
-- binaries_release/2025-09-16-p4-to-p2ab
-  - sja1110_uc.bin / sja1110_switch.bin (P4→P2A,P2B, VLAN 100)
-  - sja1110_uc_p4_to_p2ab_untag.bin / sja1110_switch_p4_to_p2ab_untag.bin (untagged)
-- binaries_release/2025-09-17-multi
-  - p4→p2ab, p4→p6p7, p2a→p4,p2b (each tagged/untagged)
-  - manifest.json (contents overview)
-- tools
-  - apply_frer.sh – sysfs upload (detects endpoints; switch→uC order)
-  - build_release.py – regenerates validated scenarios
+- `binaries_release/latest`
+  - `sja1110_uc.bin` / `sja1110_switch.bin` (P4→P2A,P2B, untagged)
+  - `index.json` describing recommended + alternative scenarios
+- `binaries_release/2025-09-27-multi`
+  - p4→p2ab, p4→p6p7, p2a→p4,p2b (각 tagged/untagged 구성)
+  - `manifest.json` (생성 메타데이터)
+- `tools`
+  - `apply_frer.sh` – sysfs 업로드 (switch → uC 순서 자동)
+  - `build_release.py` – 검증된 시나리오 재생성
+  - `fix_crc.py` – 바이너리 수정 후 CRC32 트레일러 재계산
 
 ## Quick Start (Untagged Recommended)
 ```
-cd binaries_release/2025-09-16-p4-to-p2ab
-sudo ../../tools/apply_frer.sh sja1110_uc_p4_to_p2ab_untag.bin sja1110_switch_p4_to_p2ab_untag.bin
+cd binaries_release/latest
+sudo ../../tools/apply_frer.sh sja1110_uc.bin sja1110_switch.bin
 ```
 
 Then send traffic from PFE (pfe0) and observe replication on sw0p2 and sw0p3.
