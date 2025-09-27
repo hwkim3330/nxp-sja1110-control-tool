@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import json
+import zlib
 from datetime import datetime
 import sys
 
@@ -11,11 +12,11 @@ sys.path.append(os.path.join(ROOT, 'src'))
 from sja1110_dual_firmware import SJA1110FirmwareBuilder  # type: ignore
 
 
-def build_scenario(name, streams, out_dir, vlan_id=None):
-    b = SJA1110FirmwareBuilder()
+def build_scenario(name, streams, out_dir, vlan_id=None, host_port=4, cascade_port=10):
+    builder = SJA1110FirmwareBuilder(host_port=host_port, cascade_port=cascade_port)
     for s in streams:
         vid = s.get('vlan_id', vlan_id if vlan_id is not None else 100)
-        b.add_frer_replication_stream(
+        builder.add_frer_replication_stream(
             stream_id=s['id'],
             src_port=s['src'],
             dst_ports=s['dst'],
@@ -23,20 +24,29 @@ def build_scenario(name, streams, out_dir, vlan_id=None):
             priority=s.get('prio', 7),
             name=s.get('name', name)
         )
-    uc = b.build_microcontroller_firmware()
-    sw = b.build_switch_firmware()
+    uc = builder.build_microcontroller_firmware()
+    sw = builder.build_switch_firmware()
     uc_file = os.path.join(out_dir, f"sja1110_uc_{name}.bin")
     sw_file = os.path.join(out_dir, f"sja1110_switch_{name}.bin")
     with open(uc_file, 'wb') as f:
         f.write(uc)
     with open(sw_file, 'wb') as f:
         f.write(sw)
-    # Save manifest
+    uc_meta = {
+        'path': os.path.basename(uc_file),
+        'size': len(uc),
+        'crc32': f"0x{zlib.crc32(uc[:-4]) & 0xFFFFFFFF:08x}"
+    }
+    sw_meta = {
+        'path': os.path.basename(sw_file),
+        'size': len(sw),
+        'crc32': f"0x{zlib.crc32(sw[:-4]) & 0xFFFFFFFF:08x}"
+    }
     meta = {
         'name': name,
-        'files': {'uc': os.path.basename(uc_file), 'switch': os.path.basename(sw_file)},
+        'files': {'uc': uc_meta, 'switch': sw_meta},
         'streams': streams,
-        'vlan': vlan_id,
+        'vlan': vlan_id if vlan_id is not None else 100,
         'generated': datetime.now().isoformat()
     }
     return meta
@@ -69,7 +79,14 @@ def main():
     out_dir = os.path.join(ROOT, 'binaries_release', stamp)
     os.makedirs(out_dir, exist_ok=True)
 
-    manifest = {'release': stamp, 'scenarios': []}
+    manifest = {
+        'schema_version': 1,
+        'release': stamp,
+        'device': 'SJA1110',
+        'host_port': 4,
+        'cascade_port': 10,
+        'scenarios': []
+    }
 
     for sc in scenarios:
         # Tagged (VLAN 100) and untagged (VLAN 0)
@@ -86,4 +103,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

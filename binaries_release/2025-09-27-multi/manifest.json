@@ -1,11 +1,23 @@
 {
+  "schema_version": 1,
   "release": "2025-09-27-multi",
+  "device": "SJA1110",
+  "host_port": 4,
+  "cascade_port": 10,
   "scenarios": [
     {
       "name": "p4_to_p2ab",
       "files": {
-        "uc": "sja1110_uc_p4_to_p2ab.bin",
-        "switch": "sja1110_switch_p4_to_p2ab.bin"
+        "uc": {
+          "path": "sja1110_uc_p4_to_p2ab.bin",
+          "size": 262144,
+          "crc32": "0xa1b1765a"
+        },
+        "switch": {
+          "path": "sja1110_switch_p4_to_p2ab.bin",
+          "size": 655374,
+          "crc32": "0x712b9a0f"
+        }
       },
       "streams": [
         {
@@ -19,13 +31,21 @@
         }
       ],
       "vlan": 100,
-      "generated": "2025-09-27T00:21:33.931681"
+      "generated": "2025-09-27T19:35:41.109253"
     },
     {
       "name": "p4_to_p2ab_untag",
       "files": {
-        "uc": "sja1110_uc_p4_to_p2ab_untag.bin",
-        "switch": "sja1110_switch_p4_to_p2ab_untag.bin"
+        "uc": {
+          "path": "sja1110_uc_p4_to_p2ab_untag.bin",
+          "size": 262144,
+          "crc32": "0xb8bef0de"
+        },
+        "switch": {
+          "path": "sja1110_switch_p4_to_p2ab_untag.bin",
+          "size": 655374,
+          "crc32": "0x258a344e"
+        }
       },
       "streams": [
         {
@@ -39,13 +59,21 @@
         }
       ],
       "vlan": 0,
-      "generated": "2025-09-27T00:21:33.969030"
+      "generated": "2025-09-27T19:35:41.147582"
     },
     {
       "name": "p4_to_t1_p6p7",
       "files": {
-        "uc": "sja1110_uc_p4_to_t1_p6p7.bin",
-        "switch": "sja1110_switch_p4_to_t1_p6p7.bin"
+        "uc": {
+          "path": "sja1110_uc_p4_to_t1_p6p7.bin",
+          "size": 262144,
+          "crc32": "0xf88a0823"
+        },
+        "switch": {
+          "path": "sja1110_switch_p4_to_t1_p6p7.bin",
+          "size": 655374,
+          "crc32": "0x8608c709"
+        }
       },
       "streams": [
         {
@@ -59,13 +87,21 @@
         }
       ],
       "vlan": 100,
-      "generated": "2025-09-27T00:21:34.006333"
+      "generated": "2025-09-27T19:35:41.188233"
     },
     {
       "name": "p4_to_t1_p6p7_untag",
       "files": {
-        "uc": "sja1110_uc_p4_to_t1_p6p7_untag.bin",
-        "switch": "sja1110_switch_p4_to_t1_p6p7_untag.bin"
+        "uc": {
+          "path": "sja1110_uc_p4_to_t1_p6p7_untag.bin",
+          "size": 262144,
+          "crc32": "0xcb5abb3f"
+        },
+        "switch": {
+          "path": "sja1110_switch_p4_to_t1_p6p7_untag.bin",
+          "size": 655374,
+          "crc32": "0xd2a96948"
+        }
       },
       "streams": [
         {
@@ -79,13 +115,21 @@
         }
       ],
       "vlan": 0,
-      "generated": "2025-09-27T00:21:34.043576"
+      "generated": "2025-09-27T19:35:41.226814"
     },
     {
       "name": "p2a_to_p4_p2b",
       "files": {
-        "uc": "sja1110_uc_p2a_to_p4_p2b.bin",
-        "switch": "sja1110_switch_p2a_to_p4_p2b.bin"
+        "uc": {
+          "path": "sja1110_uc_p2a_to_p4_p2b.bin",
+          "size": 262144,
+          "crc32": "0x0430350f"
+        },
+        "switch": {
+          "path": "sja1110_switch_p2a_to_p4_p2b.bin",
+          "size": 655374,
+          "crc32": "0x04c87b2d"
+        }
       },
       "streams": [
         {
@@ -99,13 +143,21 @@
         }
       ],
       "vlan": 100,
-      "generated": "2025-09-27T00:21:34.082705"
+      "generated": "2025-09-27T19:35:41.266127"
     },
     {
       "name": "p2a_to_p4_p2b_untag",
       "files": {
-        "uc": "sja1110_uc_p2a_to_p4_p2b_untag.bin",
-        "switch": "sja1110_switch_p2a_to_p4_p2b_untag.bin"
+        "uc": {
+          "path": "sja1110_uc_p2a_to_p4_p2b_untag.bin",
+          "size": 262144,
+          "crc32": "0x4c4404c0"
+        },
+        "switch": {
+          "path": "sja1110_switch_p2a_to_p4_p2b_untag.bin",
+          "size": 655374,
+          "crc32": "0x5069d56c"
+        }
       },
       "streams": [
         {
@@ -119,7 +171,7 @@
         }
       ],
       "vlan": 0,
-      "generated": "2025-09-27T00:21:34.120045"
+      "generated": "2025-09-27T19:35:41.303978"
     }
   ]
 }

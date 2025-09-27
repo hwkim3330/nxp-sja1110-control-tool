@@ -21,6 +21,7 @@ NXP S32G-VNP-GLDBOX (Gold Box)의 SJA1110 TSN 스위치에서 FRER 프레임 복
 - [설치 및 사용법](#설치-및-사용법)
 - [테스트 방법](#테스트-방법)
 - [문제 해결](#문제-해결)
+- [부록: 펌웨어 메모리 맵](docs/SJA1110_Firmware_Format.md)
 
 ## 🔧 하드웨어 요구사항
 
@@ -157,6 +158,8 @@ echo sja1110_uc.bin | sudo tee /sys/bus/spi/devices/spi0.1/uc-configuration/uc_f
 ./tools/fix_crc.py sja1110_switch.bin sja1110_uc.bin
 # 출력 예: "✓ Updated sja1110_switch.bin CRC32 to 0xXXXXXXXX"
 ```
+
+자세한 메모리 구조는 [`docs/SJA1110_Firmware_Format.md`](docs/SJA1110_Firmware_Format.md)를 참고하세요.
 
 ## 🧪 테스트 방법
 
