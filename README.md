@@ -312,6 +312,9 @@ with open('custom_switch.bin', 'wb') as f:
 - [IEEE 802.1CB-2017 FRER 표준](https://standards.ieee.org/standard/802_1CB-2017.html)
 - [NXP SJA1110 데이터시트](https://www.nxp.com/products/interfaces/ethernet/automotive-ethernet-switches/sja1110-automotive-ethernet-switch:SJA1110)
 - [TSN 시간 민감 네트워킹 개요](https://en.wikipedia.org/wiki/Time-Sensitive_Networking)
+- [NXP automotive SJA1110 Linux driver (nxp-archive)](https://github.com/nxp-archive/autoivnsw_sja1110_linux)
+- [openil_sja1105-tool (SJA1105/1110 configuration utilities)](https://github.com/nxp-archive/openil_sja1105-tool)
+- [NXP Community: S32G2 Linux BSP & SJA1110 토론](https://community.nxp.com/t5/S32G/S32G2-LINUX-BSP-and-SJA1110/m-p/1985342)
 
 ## 🤝 기여하기
 
@@ -339,6 +342,6 @@ with open('custom_switch.bin', 'wb') as f:
 ## ⚡ Quick Start (Clean)
 - Recommended (untagged):
   - `cd binaries_release/latest`
-  - `sudo ../../tools/apply_frer.sh def sja1110_switch.bin`  (use system's default UC firmware)
-- More scenarios: `binaries_release/2025-09-17-multi` (tagged/untagged). See `SCENARIOS.md`.
+  - `sudo ../../tools/apply_frer.sh sja1110_uc.bin sja1110_switch.bin`
+- More scenarios: `binaries_release/2025-09-27-multi` (tagged/untagged). See `SCENARIOS.md`.
 - Details: `RELEASE_NOTES.md`.

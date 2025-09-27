@@ -1,6 +1,6 @@
 # SJA1110 Firmware Format & Memory Map
 
-본 문서는 **NXP SJA1110 Linux Driver Release v0.4.1** (`sja1110_init.c / sja1110_init.h`)와 Gold Box 실제 바이너리를 분석해 정리한 결과입니다. 저장소 최상위에 포함된 `sja1110-nxp-official/` 디렉터리에서 원본 드라이버 소스를 확인할 수 있습니다.
+본 문서는 **NXP SJA1110 Linux Driver Release v0.4.1** (`sja1110_init.c / sja1110_init.h`)와 Gold Box 실제 바이너리를 분석해 정리한 결과입니다. 원본 드라이버 코드는 [nxp-archive/autoivnsw_sja1110_linux](https://github.com/nxp-archive/autoivnsw_sja1110_linux)에서 그대로 확인할 수 있으며, 이 저장소의 `sja1110-nxp-official/` 디렉터리에도 복사본이 포함돼 있습니다.
 
 ## 1. 마이크로컨트롤러 펌웨어 (`sja1110_uc*.bin`)
 
@@ -80,12 +80,14 @@ struct dpi_entry {
 - `tools/fix_crc.py` 스크립트를 이용하면 바이너리 편집 후 CRC를 자동으로 재계산할 수 있습니다.
 
 ## 4. 참고 소스
-- `sja1110-nxp-official/sja1110_init.h`
+- `sja1110-nxp-official/sja1110_init.h` (또는 [GitHub 원본](https://github.com/nxp-archive/autoivnsw_sja1110_linux/blob/master/sja1110_init.h))
   - `IMAGE_VALID_MARKER`, `CONFIG_START_ADDRESS`, `CF_*` 매크로 정의
-- `sja1110-nxp-official/sja1110_init.c`
+- `sja1110-nxp-official/sja1110_init.c` (또는 [GitHub 원본](https://github.com/nxp-archive/autoivnsw_sja1110_linux/blob/master/sja1110_init.c))
   - 펌웨어 업로드/검증 루틴 (`sja1110_pre_uc_upload`, `sja1110_simple_upload` 등)
 - `docs/goldbox_port_mapping.md`
   - Gold Box 포트 <-> SJA1110 포트 매핑
+- 추가 도구: [nxp-archive/openil_sja1105-tool](https://github.com/nxp-archive/openil_sja1105-tool)
+- NXP 커뮤니티 Q&A: [S32G2 LINUX BSP and SJA1110](https://community.nxp.com/t5/S32G/S32G2-LINUX-BSP-and-SJA1110/m-p/1985342)
 
 ## 5. Gold Box 기본 포트 매핑 요약
 | 포트 | 설명 |
