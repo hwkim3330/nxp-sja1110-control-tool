@@ -2,14 +2,37 @@
 import os
 import json
 import zlib
+from pathlib import Path
 from datetime import datetime
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, os.pardir))
 sys.path.append(os.path.join(ROOT, 'src'))
+BASE_SWITCH_JSON = Path(ROOT) / 'config' / 'base_switch_words.json'
 
 from sja1110_dual_firmware import SJA1110FirmwareBuilder  # type: ignore
+
+
+def load_base_switch_words():
+    if BASE_SWITCH_JSON.exists():
+        with open(BASE_SWITCH_JSON, 'r') as f:
+            data = json.load(f)
+        return data.get('words', [])
+    return []
+
+
+BASE_SWITCH_WORDS = load_base_switch_words()
+
+
+def overlay_base_switch(payload: bytearray) -> None:
+    if not BASE_SWITCH_WORDS:
+        return
+    for idx, word in enumerate(BASE_SWITCH_WORDS):
+        offset = idx * 4
+        if offset + 4 > len(payload):
+            break
+        payload[offset:offset + 4] = word.to_bytes(4, 'little')
 
 
 def build_scenario(name, streams, out_dir, vlan_id=None, host_port=4, cascade_port=10):
@@ -25,7 +48,8 @@ def build_scenario(name, streams, out_dir, vlan_id=None, host_port=4, cascade_po
             name=s.get('name', name)
         )
     uc = builder.build_microcontroller_firmware()
-    sw = builder.build_switch_firmware()
+    sw = bytearray(builder.build_switch_firmware())
+    overlay_base_switch(sw)
     uc_file = os.path.join(out_dir, f"sja1110_uc_{name}.bin")
     sw_file = os.path.join(out_dir, f"sja1110_switch_{name}.bin")
     with open(uc_file, 'wb') as f:

@@ -6,7 +6,7 @@ This release provides known‑good FRER binaries and simple tooling for the Gold
 - `binaries_release/latest`
   - `sja1110_uc.bin` / `sja1110_switch.bin` (P4→P2A,P2B, untagged)
   - `index.json` describing recommended + alternative scenarios
-- `binaries_release/2025-09-27-multi`
+- `binaries_release/2025-09-29-multi`
   - p4→p2ab, p4→p6p7, p2a→p4,p2b (각 tagged/untagged 구성)
   - `manifest.json` (생성 메타데이터)
 - `tools`

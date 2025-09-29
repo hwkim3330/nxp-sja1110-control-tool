@@ -12,6 +12,7 @@ NXP S32G-VNP-GLDBOX (Gold Box)의 SJA1110 TSN 스위치에서 FRER 프레임 복
 - **자동 업로드**: Gold Box 펌웨어 업로드 스크립트 포함
 - **포괄적 테스트**: FRER 기능 검증 도구
 - **CRC32 자동 처리**: 생성된 모든 바이너리에 올바른 헤더와 CRC32 트레일러 자동 삽입
+- **기본 설정 유지**: `config/base_switch_words.json`에서 추출한 NXP 기본 스위치 설정을 그대로 오버레이한 뒤 FRER 항목만 추가 구성
 
 ## 📋 목차
 
@@ -136,8 +137,8 @@ cd binaries_release/latest
 sudo ../../goldbox_dual_upload.sh sja1110_uc.bin sja1110_switch.bin
 
 # VLAN 태그 버전을 사용하려면 (tagged 100)
-sudo ../../goldbox_dual_upload.sh ../2025-09-27-multi/sja1110_uc_p4_to_p2ab.bin \
-                                     ../2025-09-27-multi/sja1110_switch_p4_to_p2ab.bin
+sudo ../../goldbox_dual_upload.sh ../2025-09-29-multi/sja1110_uc_p4_to_p2ab.bin \
+                                     ../2025-09-29-multi/sja1110_switch_p4_to_p2ab.bin
 ```
 
 ### 4-1. 수동(sysfs) 업로드 (대안)
@@ -343,5 +344,5 @@ with open('custom_switch.bin', 'wb') as f:
 - Recommended (untagged):
   - `cd binaries_release/latest`
   - `sudo ../../tools/apply_frer.sh sja1110_uc.bin sja1110_switch.bin`
-- More scenarios: `binaries_release/2025-09-27-multi` (tagged/untagged). See `SCENARIOS.md`.
+- More scenarios: `binaries_release/2025-09-29-multi` (tagged/untagged). See `SCENARIOS.md`.
 - Details: `RELEASE_NOTES.md`.

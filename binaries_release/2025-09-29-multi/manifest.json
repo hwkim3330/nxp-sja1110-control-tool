@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "release": "2025-09-27-multi",
+  "release": "2025-09-29-multi",
   "device": "SJA1110",
   "host_port": 4,
   "cascade_port": 10,
@@ -11,12 +11,12 @@
         "uc": {
           "path": "sja1110_uc_p4_to_p2ab.bin",
           "size": 262144,
-          "crc32": "0xa1b1765a"
+          "crc32": "0xaf1e8bff"
         },
         "switch": {
           "path": "sja1110_switch_p4_to_p2ab.bin",
           "size": 655374,
-          "crc32": "0x712b9a0f"
+          "crc32": "0x31ec1851"
         }
       },
       "streams": [
@@ -31,7 +31,7 @@
         }
       ],
       "vlan": 100,
-      "generated": "2025-09-27T19:35:41.109253"
+      "generated": "2025-09-29T10:03:34.628335"
     },
     {
       "name": "p4_to_p2ab_untag",
@@ -39,12 +39,12 @@
         "uc": {
           "path": "sja1110_uc_p4_to_p2ab_untag.bin",
           "size": 262144,
-          "crc32": "0xb8bef0de"
+          "crc32": "0x26ac440b"
         },
         "switch": {
           "path": "sja1110_switch_p4_to_p2ab_untag.bin",
           "size": 655374,
-          "crc32": "0x258a344e"
+          "crc32": "0x654db610"
         }
       },
       "streams": [
@@ -59,7 +59,7 @@
         }
       ],
       "vlan": 0,
-      "generated": "2025-09-27T19:35:41.147582"
+      "generated": "2025-09-29T10:03:34.667707"
     },
     {
       "name": "p4_to_t1_p6p7",
@@ -67,12 +67,12 @@
         "uc": {
           "path": "sja1110_uc_p4_to_t1_p6p7.bin",
           "size": 262144,
-          "crc32": "0xf88a0823"
+          "crc32": "0xf8cb30c4"
         },
         "switch": {
           "path": "sja1110_switch_p4_to_t1_p6p7.bin",
           "size": 655374,
-          "crc32": "0x8608c709"
+          "crc32": "0xc6cf4557"
         }
       },
       "streams": [
@@ -87,7 +87,7 @@
         }
       ],
       "vlan": 100,
-      "generated": "2025-09-27T19:35:41.188233"
+      "generated": "2025-09-29T10:03:34.706989"
     },
     {
       "name": "p4_to_t1_p6p7_untag",
@@ -95,12 +95,12 @@
         "uc": {
           "path": "sja1110_uc_p4_to_t1_p6p7_untag.bin",
           "size": 262144,
-          "crc32": "0xcb5abb3f"
+          "crc32": "0xb70764fb"
         },
         "switch": {
           "path": "sja1110_switch_p4_to_t1_p6p7_untag.bin",
           "size": 655374,
-          "crc32": "0xd2a96948"
+          "crc32": "0x926eeb16"
         }
       },
       "streams": [
@@ -115,7 +115,7 @@
         }
       ],
       "vlan": 0,
-      "generated": "2025-09-27T19:35:41.226814"
+      "generated": "2025-09-29T10:03:34.745577"
     },
     {
       "name": "p2a_to_p4_p2b",
@@ -123,12 +123,12 @@
         "uc": {
           "path": "sja1110_uc_p2a_to_p4_p2b.bin",
           "size": 262144,
-          "crc32": "0x0430350f"
+          "crc32": "0x4abb5076"
         },
         "switch": {
           "path": "sja1110_switch_p2a_to_p4_p2b.bin",
           "size": 655374,
-          "crc32": "0x04c87b2d"
+          "crc32": "0x440ff973"
         }
       },
       "streams": [
@@ -143,7 +143,7 @@
         }
       ],
       "vlan": 100,
-      "generated": "2025-09-27T19:35:41.266127"
+      "generated": "2025-09-29T10:03:34.784051"
     },
     {
       "name": "p2a_to_p4_p2b_untag",
@@ -151,12 +151,12 @@
         "uc": {
           "path": "sja1110_uc_p2a_to_p4_p2b_untag.bin",
           "size": 262144,
-          "crc32": "0x4c4404c0"
+          "crc32": "0x719e7b68"
         },
         "switch": {
           "path": "sja1110_switch_p2a_to_p4_p2b_untag.bin",
           "size": 655374,
-          "crc32": "0x5069d56c"
+          "crc32": "0x10ae5732"
         }
       },
       "streams": [
@@ -171,7 +171,7 @@
         }
       ],
       "vlan": 0,
-      "generated": "2025-09-27T19:35:41.303978"
+      "generated": "2025-09-29T10:03:34.822518"
     }
   ]
 }

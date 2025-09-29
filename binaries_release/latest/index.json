@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated": "2025-09-27T19:35:41Z",
+  "generated": "2025-09-29T10:03:34.628335",
   "device": "SJA1110",
   "host_port": 4,
   "cascade_port": 10,
@@ -14,31 +14,33 @@
       "uc": {
         "path": "sja1110_uc.bin",
         "size": 262144,
-        "crc32": "0xb8bef0de"
+        "crc32": "0x26ac440b"
       },
       "switch": {
         "path": "sja1110_switch.bin",
         "size": 655374,
-        "crc32": "0x258a344e"
+        "crc32": "0x654db610"
       }
     },
     "streams": [
       {
         "id": 1,
-        "src_port": 4,
-        "dst_ports": [2, 3],
-        "vlan": 0,
-        "priority": 7
+        "src": 4,
+        "dst": [
+          2,
+          3
+        ],
+        "name": "PFE_to_P2AB"
       }
     ]
   },
   "alternatives": [
     {
       "name": "p4_to_p2ab_vlan100",
-      "description": "Same as recommended but VLAN ID 100 tagged",
+      "description": "Same topology with VLAN ID 100 tags",
       "files": [
-        "../2025-09-27-multi/sja1110_uc_p4_to_p2ab.bin",
-        "../2025-09-27-multi/sja1110_switch_p4_to_p2ab.bin"
+        "../2025-09-29-multi/sja1110_uc_p4_to_p2ab.bin",
+        "../2025-09-29-multi/sja1110_switch_p4_to_p2ab.bin"
       ],
       "vlan": 100
     },
@@ -46,8 +48,8 @@
       "name": "p4_to_t1_p6p7",
       "description": "PFE (Port 4) replicated to 100BASE-T1 ports P6/P7",
       "files": [
-        "../2025-09-27-multi/sja1110_uc_p4_to_t1_p6p7_untag.bin",
-        "../2025-09-27-multi/sja1110_switch_p4_to_t1_p6p7_untag.bin"
+        "../2025-09-29-multi/sja1110_uc_p4_to_t1_p6p7_untag.bin",
+        "../2025-09-29-multi/sja1110_switch_p4_to_t1_p6p7_untag.bin"
       ],
       "vlan": 0
     },
@@ -55,8 +57,8 @@
       "name": "p2a_to_p4_p2b",
       "description": "P2A uplink replicated to PFE and P2B",
       "files": [
-        "../2025-09-27-multi/sja1110_uc_p2a_to_p4_p2b_untag.bin",
-        "../2025-09-27-multi/sja1110_switch_p2a_to_p4_p2b_untag.bin"
+        "../2025-09-29-multi/sja1110_uc_p2a_to_p4_p2b_untag.bin",
+        "../2025-09-29-multi/sja1110_switch_p2a_to_p4_p2b_untag.bin"
       ],
       "vlan": 0
     }
