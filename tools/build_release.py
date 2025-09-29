@@ -10,6 +10,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, os.pardir))
 sys.path.append(os.path.join(ROOT, 'src'))
 BASE_SWITCH_JSON = Path(ROOT) / 'config' / 'base_switch_words.json'
+BASE_UC_PATH = Path(ROOT) / 'config' / 'base_uc.bin'
 
 from sja1110_dual_firmware import SJA1110FirmwareBuilder  # type: ignore
 
@@ -23,6 +24,15 @@ def load_base_switch_words():
 
 
 BASE_SWITCH_WORDS = load_base_switch_words()
+
+
+def load_base_uc() -> bytes:
+    if BASE_UC_PATH.exists():
+        return BASE_UC_PATH.read_bytes()
+    raise FileNotFoundError(f"Missing base UC firmware: {BASE_UC_PATH}")
+
+
+BASE_UC_DATA = load_base_uc()
 
 
 def overlay_base_switch(payload: bytearray) -> None:
@@ -47,24 +57,26 @@ def build_scenario(name, streams, out_dir, vlan_id=None, host_port=4, cascade_po
             priority=s.get('prio', 7),
             name=s.get('name', name)
         )
-    uc = builder.build_microcontroller_firmware()
     sw = bytearray(builder.build_switch_firmware())
     overlay_base_switch(sw)
+    payload = sw[:-4]
+    crc_sw = zlib.crc32(payload) & 0xFFFFFFFF
+    sw[-4:] = crc_sw.to_bytes(4, 'little')
     uc_file = os.path.join(out_dir, f"sja1110_uc_{name}.bin")
     sw_file = os.path.join(out_dir, f"sja1110_switch_{name}.bin")
     with open(uc_file, 'wb') as f:
-        f.write(uc)
+        f.write(BASE_UC_DATA)
     with open(sw_file, 'wb') as f:
         f.write(sw)
     uc_meta = {
         'path': os.path.basename(uc_file),
-        'size': len(uc),
-        'crc32': f"0x{zlib.crc32(uc[:-4]) & 0xFFFFFFFF:08x}"
+        'size': len(BASE_UC_DATA),
+        'crc32': f"0x{zlib.crc32(BASE_UC_DATA) & 0xFFFFFFFF:08x}"
     }
     sw_meta = {
         'path': os.path.basename(sw_file),
         'size': len(sw),
-        'crc32': f"0x{zlib.crc32(sw[:-4]) & 0xFFFFFFFF:08x}"
+        'crc32': f"0x{crc_sw:08x}"
     }
     meta = {
         'name': name,

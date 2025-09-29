@@ -10,8 +10,8 @@
       "files": {
         "uc": {
           "path": "sja1110_uc_p4_to_p2ab.bin",
-          "size": 262144,
-          "crc32": "0xaf1e8bff"
+          "size": 320280,
+          "crc32": "0xeab8b9b1"
         },
         "switch": {
           "path": "sja1110_switch_p4_to_p2ab.bin",
@@ -31,15 +31,15 @@
         }
       ],
       "vlan": 100,
-      "generated": "2025-09-29T10:03:34.628335"
+      "generated": "2025-09-29T11:38:07.389108"
     },
     {
       "name": "p4_to_p2ab_untag",
       "files": {
         "uc": {
           "path": "sja1110_uc_p4_to_p2ab_untag.bin",
-          "size": 262144,
-          "crc32": "0x26ac440b"
+          "size": 320280,
+          "crc32": "0xeab8b9b1"
         },
         "switch": {
           "path": "sja1110_switch_p4_to_p2ab_untag.bin",
@@ -59,15 +59,15 @@
         }
       ],
       "vlan": 0,
-      "generated": "2025-09-29T10:03:34.667707"
+      "generated": "2025-09-29T11:38:07.413414"
     },
     {
       "name": "p4_to_t1_p6p7",
       "files": {
         "uc": {
           "path": "sja1110_uc_p4_to_t1_p6p7.bin",
-          "size": 262144,
-          "crc32": "0xf8cb30c4"
+          "size": 320280,
+          "crc32": "0xeab8b9b1"
         },
         "switch": {
           "path": "sja1110_switch_p4_to_t1_p6p7.bin",
@@ -87,15 +87,15 @@
         }
       ],
       "vlan": 100,
-      "generated": "2025-09-29T10:03:34.706989"
+      "generated": "2025-09-29T11:38:07.437649"
     },
     {
       "name": "p4_to_t1_p6p7_untag",
       "files": {
         "uc": {
           "path": "sja1110_uc_p4_to_t1_p6p7_untag.bin",
-          "size": 262144,
-          "crc32": "0xb70764fb"
+          "size": 320280,
+          "crc32": "0xeab8b9b1"
         },
         "switch": {
           "path": "sja1110_switch_p4_to_t1_p6p7_untag.bin",
@@ -115,15 +115,15 @@
         }
       ],
       "vlan": 0,
-      "generated": "2025-09-29T10:03:34.745577"
+      "generated": "2025-09-29T11:38:07.462052"
     },
     {
       "name": "p2a_to_p4_p2b",
       "files": {
         "uc": {
           "path": "sja1110_uc_p2a_to_p4_p2b.bin",
-          "size": 262144,
-          "crc32": "0x4abb5076"
+          "size": 320280,
+          "crc32": "0xeab8b9b1"
         },
         "switch": {
           "path": "sja1110_switch_p2a_to_p4_p2b.bin",
@@ -143,15 +143,15 @@
         }
       ],
       "vlan": 100,
-      "generated": "2025-09-29T10:03:34.784051"
+      "generated": "2025-09-29T11:38:07.486329"
     },
     {
       "name": "p2a_to_p4_p2b_untag",
       "files": {
         "uc": {
           "path": "sja1110_uc_p2a_to_p4_p2b_untag.bin",
-          "size": 262144,
-          "crc32": "0x719e7b68"
+          "size": 320280,
+          "crc32": "0xeab8b9b1"
         },
         "switch": {
           "path": "sja1110_switch_p2a_to_p4_p2b_untag.bin",
@@ -171,7 +171,7 @@
         }
       ],
       "vlan": 0,
-      "generated": "2025-09-29T10:03:34.822518"
+      "generated": "2025-09-29T11:38:07.510721"
     }
   ]
 }

@@ -13,6 +13,7 @@ NXP S32G-VNP-GLDBOX (Gold Box)의 SJA1110 TSN 스위치에서 FRER 프레임 복
 - **포괄적 테스트**: FRER 기능 검증 도구
 - **CRC32 자동 처리**: 생성된 모든 바이너리에 올바른 헤더와 CRC32 트레일러 자동 삽입
 - **기본 설정 유지**: `config/base_switch_words.json`에서 추출한 NXP 기본 스위치 설정을 그대로 오버레이한 뒤 FRER 항목만 추가 구성
+- **공식 UC 펌웨어 재사용**: `config/base_uc.bin`에 저장된 `/home/kim/s32g2/sja1110_uc.bin` 원본을 그대로 배포 (FRER 설정은 스위치 측에서만 적용)
 
 ## 📋 목차
 
